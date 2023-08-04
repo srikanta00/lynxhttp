@@ -32,7 +32,7 @@ int main() {
 */
     net::io_service io_service;
 
-    auto const address = net::ip::make_address("192.168.222.130");
+    auto const address = net::ip::make_address("127.0.0.1");
 
     net::ip::tcp::endpoint endpoint{address, 4224};
     net::ip::tcp::acceptor acceptor{io_service};

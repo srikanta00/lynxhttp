@@ -7,6 +7,8 @@ SOURCES = httpserver.cpp
 
 OBJECTS := $(notdir $(SOURCES:.cpp=.o))
 
+LIBS = -L/usr/local/lib/ -lboost_system -lpthread -lboost_thread
+
 SHARED_OBJECTS := lynxhttp
 SHARED_OBJECTS_HOME = ..
 SHARED_OBJECTS_DIR = $(SHARED_OBJECTS_HOME)/Bin
@@ -15,7 +17,7 @@ all : $(TARGET)
 
 $(TARGET) : $(SHARED_OBJECTS) $(OBJECTS)
 	@echo Linking $@
-	@g++ $(OBJECTS) -L$(SHARED_OBJECTS_DIR) -Wl,-rpath=$(SHARED_OBJECTS_DIR)  $(addprefix -l, $(SHARED_OBJECTS)) -o $(TARGET)
+	@g++ $(OBJECTS) -L$(SHARED_OBJECTS_DIR) -Wl,-rpath=$(SHARED_OBJECTS_DIR)  $(addprefix -l, $(SHARED_OBJECTS)) $(LIBS) -o $(TARGET)
 
 %.o : %.cpp
 	@echo Compiling $<
