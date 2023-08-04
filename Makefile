@@ -3,7 +3,7 @@ NAME = lynxhttp
 INCLUDES = -I. \
            -Iserver
 
-LIBS = 
+LIBS = -L/usr/local/lib/ -lboost_system
 
 VPATH := server
 
