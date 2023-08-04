@@ -1,11 +1,11 @@
 NAME = lynxhttp
 
 INCLUDES = -I. \
-           -Ilib
+           -Iserver
 
 LIBS = 
 
-VPATH := lib
+VPATH := server
 
 FLAGS = -fPIC
 

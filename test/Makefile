@@ -1,7 +1,7 @@
 TARGET = httpserver
 
 INCLUDES = -I. \
-	   -I../lib
+	   -I../server
 
 SOURCES = httpserver.cpp
 
