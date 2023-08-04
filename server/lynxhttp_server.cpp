@@ -13,7 +13,7 @@ void server::identity() {
 }
 
 void server::run(net::ip::tcp::endpoint& ep) {
-    auto socket = make_shared<net::ip::tcp::socket>(ioc, ep.protocol());
+    auto socket = make_shared<net::ip::tcp::socket>(ioc);
     acceptor->async_accept(*socket,
                         [this, socket, &ep](const error_code& ec)
                         {
