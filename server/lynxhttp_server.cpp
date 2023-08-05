@@ -1,7 +1,7 @@
 #include <boost/asio.hpp>
 
 #include "lynxhttp_server.hpp"
-#include "lynxhttp_connection.hpp"
+
 
 namespace net = boost::asio;
 
@@ -15,9 +15,12 @@ public:
     void run(net::ip::tcp::endpoint& endpoint);
     void serve();
 
+    void set_callback(cb callback);
 private:
     net::io_service ioc;
     shared_ptr<net::ip::tcp::acceptor> acceptor; //{ioc, endpoint};
+
+    cb cb_;
 };
 
 Server::Server() {
@@ -32,9 +35,15 @@ void Server::serve() {
     impl_->serve();
 }
 
+void Server::handle(const std::string& path, cb callback) {
+    impl_->set_callback(callback);
+}
+
 void Server::Impl::run(net::ip::tcp::endpoint& ep) {
     /* std::make_shared did not work with shared_from_this(). Don't know why. */
     auto connection = boost::shared_ptr<Connection>(new Connection(ioc));
+
+    connection->set_callback(cb_);
 
     acceptor->async_accept(connection->socket(),
                         [this, connection, &ep](const error_code& ec)
@@ -58,3 +67,6 @@ void Server::Impl::serve() {
     ioc.run();
 }
 
+void Server::Impl::set_callback(cb callback) {
+    cb_ = callback;
+}

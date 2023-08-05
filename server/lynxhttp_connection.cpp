@@ -16,18 +16,38 @@ net::ip::tcp::socket& Connection::socket() {
 }
 
 void Connection::run() {
+    auto sp = shared_from_this();
     socket_.async_read_some(boost::asio::buffer(data_), 
-                            [sp = shared_from_this()](const boost::system::error_code& err,
-            std::size_t bytes_transferred){
-                                std::cout << "data read: " << std::string(sp->data_.begin(), sp->data_.end()) << std::endl;
+        [sp](const boost::system::error_code& err,
+        std::size_t bytes_transferred){
 
-                                std::string msg("Hi there! I am not ready");
-                                sp->socket().async_write_some(boost::asio::buffer(msg),
-                                    [sp](const boost::system::error_code& err,
-                                                    std::size_t bytes_transferred) {
-                                        std::cout << "Message sent" << std::endl;
-                                    }
-                                );
-                            
-                            });
+            sp->set_req(std::string(sp->data_.begin(), sp->data_.end()));
+            sp->resp().set_connection(sp);
+            sp->handle_request();
+        }
+        );
+}
+
+void Connection::set_callback(cb callback) {
+    cb_ = callback;
+}
+
+request& Connection::req() {
+    return req_;
+}
+
+void Connection::set_req(const std::string& data) {
+    req_.set_data(data);
+}
+
+response& Connection::resp() {
+    return resp_;
+}
+
+void Connection::set_resp(const std::string& data) {
+    resp_.set_data(data);
+}
+
+void Connection::handle_request() {
+    cb_(req_, resp_);
 }

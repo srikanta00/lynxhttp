@@ -9,9 +9,10 @@ VPATH := server
 
 FLAGS = -fPIC
 
-SOURCES = lynxhttp_server.cpp \
-          lynxhttp_connection.cpp
-
+SOURCES = lynxhttp_message.cpp \
+		  lynxhttp_connection.cpp \
+		  lynxhttp_server.cpp
+          
 BIN_DIR = ./Bin
 
 TARGET = $(BIN_DIR)/lib$(NAME).so
