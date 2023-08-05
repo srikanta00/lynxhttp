@@ -9,7 +9,8 @@ VPATH := server
 
 FLAGS = -fPIC
 
-SOURCES = lynxhttp_server.cpp
+SOURCES = lynxhttp_server.cpp \
+          lynxhttp_connection.cpp
 
 BIN_DIR = ./Bin
 

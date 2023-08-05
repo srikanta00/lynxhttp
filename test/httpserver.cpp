@@ -2,7 +2,7 @@
 
 int main() {
 
-    server srv;
+    Server srv;
     srv.serve();
 
     return 0;

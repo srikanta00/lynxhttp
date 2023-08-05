@@ -1,34 +1,53 @@
-#include <lynxhttp_server.hpp>
+#include <boost/asio.hpp>
 
-server::server() {
-    cout << "constructor" << endl;
+#include "lynxhttp_server.hpp"
+#include "lynxhttp_connection.hpp"
+
+namespace net = boost::asio;
+
+class Server::Impl 
+{
+public:
+    Impl() {
+
+    }
+
+    void run(net::ip::tcp::endpoint& endpoint);
+    void serve();
+
+private:
+    net::io_service ioc;
+    shared_ptr<net::ip::tcp::acceptor> acceptor; //{ioc, endpoint};
+};
+
+Server::Server() {
+    impl_ = new Impl{};
 }
 
-server::~server() {
-    cout << "destructor" << endl;
+Server::~Server() {
+    delete impl_;
 }
 
-void server::identity() {
-    cout << "identity" << endl;
+void Server::serve() {
+    impl_->serve();
 }
 
-void server::run(net::ip::tcp::endpoint& ep) {
-    auto socket = make_shared<net::ip::tcp::socket>(ioc);
-    acceptor->async_accept(*socket,
-                        [this, socket, &ep](const error_code& ec)
+void Server::Impl::run(net::ip::tcp::endpoint& ep) {
+    auto connection = make_shared<Connection>(ioc);
+    acceptor->async_accept(connection->socket(),
+                        [this, &connection, &ep](const error_code& ec)
                         {
-                            cout << "handler called:" << ec << ":" << this->tmp++ << endl;
+                            cout << "handler called:" << ec << endl;
                             if(!ec)
                             {
-                                cout << "data received" << endl;
-                                exit(0);
+                                connection->run();
                             }
 
                             this->run(ep);
                         });
 }
 
-void server::serve() {
+void Server::Impl::serve() {
     net::ip::tcp::endpoint endpoint{net::ip::tcp::v4(), 8081};
     acceptor = make_shared<net::ip::tcp::acceptor>(ioc, endpoint);
     acceptor->listen();
@@ -36,3 +55,4 @@ void server::serve() {
 
     ioc.run();
 }
+
