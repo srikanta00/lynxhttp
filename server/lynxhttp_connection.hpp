@@ -1,4 +1,5 @@
 #include<string>
+
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
 #include <boost/enable_shared_from_this.hpp>
@@ -15,8 +16,6 @@ public:
     void run();
 
 private:
-    void handle_read(const boost::system::error_code& err,
-            std::size_t bytes_transferred);
 
     net::ip::tcp::socket socket_;
     boost::array<uint8_t, 8000> data_;

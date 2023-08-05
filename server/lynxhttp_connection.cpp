@@ -1,5 +1,4 @@
 #include <iostream>
-#include <boost/bind.hpp>
 
 #include "lynxhttp_connection.hpp"
 
@@ -9,7 +8,7 @@ Connection::Connection(net::io_service& ios) :
 }
 
 Connection::~Connection() {
-
+    std::cout << "connection::destructor called" << std::endl;
 }
 
 net::ip::tcp::socket& Connection::socket() {
@@ -18,11 +17,17 @@ net::ip::tcp::socket& Connection::socket() {
 
 void Connection::run() {
     socket_.async_read_some(boost::asio::buffer(data_), 
-                            boost::bind(&Connection::handle_read, shared_from_this(),
-                net::placeholders::error, net::placeholders::bytes_transferred));
-}
+                            [sp = shared_from_this()](const boost::system::error_code& err,
+            std::size_t bytes_transferred){
+                                std::cout << "data read: " << std::string(sp->data_.begin(), sp->data_.end()) << std::endl;
 
-void Connection::handle_read(const boost::system::error_code& err,
-            std::size_t bytes_transferred) {
-    std::cout << "data read: " << std::string(data_.begin(), data_.end()) << std::endl;
+                                std::string msg("Hi there! I am not ready");
+                                sp->socket().async_write_some(boost::asio::buffer(msg),
+                                    [sp](const boost::system::error_code& err,
+                                                    std::size_t bytes_transferred) {
+                                        std::cout << "Message sent" << std::endl;
+                                    }
+                                );
+                            
+                            });
 }

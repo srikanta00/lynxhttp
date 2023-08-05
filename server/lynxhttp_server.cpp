@@ -33,9 +33,11 @@ void Server::serve() {
 }
 
 void Server::Impl::run(net::ip::tcp::endpoint& ep) {
-    auto connection = make_shared<Connection>(ioc);
+    /* std::make_shared did not work with shared_from_this(). Don't know why. */
+    auto connection = boost::shared_ptr<Connection>(new Connection(ioc));
+
     acceptor->async_accept(connection->socket(),
-                        [this, &connection, &ep](const error_code& ec)
+                        [this, connection, &ep](const error_code& ec)
                         {
                             cout << "handler called:" << ec << endl;
                             if(!ec)
