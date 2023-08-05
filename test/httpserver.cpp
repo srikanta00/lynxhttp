@@ -2,12 +2,12 @@
 
 int main() {
 
-    Server srv;
+    server srv;
 
-    srv.handle("/", [](const request& req, const response& resp){
-        std::cout << "data received: " << req.data() << std::endl;
+    srv.handle("/", [](const request::ptr req, const response::ptr resp){
+        std::cout << "data received: " << req->data() << std::endl;
 
-        resp.send("Hi there.");
+        resp->send("Hi there.");
     });
     srv.serve();
 

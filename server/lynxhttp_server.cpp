@@ -5,7 +5,7 @@
 
 namespace net = boost::asio;
 
-class Server::Impl 
+class server::Impl 
 {
 public:
     Impl() {
@@ -23,42 +23,42 @@ private:
     cb cb_;
 };
 
-Server::Server() {
+server::server() {
     impl_ = new Impl{};
 }
 
-Server::~Server() {
+server::~server() {
     delete impl_;
 }
 
-void Server::serve() {
+void server::serve() {
     impl_->serve();
 }
 
-void Server::handle(const std::string& path, cb callback) {
+void server::handle(const std::string& path, cb callback) {
     impl_->set_callback(callback);
 }
 
-void Server::Impl::run(net::ip::tcp::endpoint& ep) {
+void server::Impl::run(net::ip::tcp::endpoint& ep) {
     /* std::make_shared did not work with shared_from_this(). Don't know why. */
-    auto connection = boost::shared_ptr<Connection>(new Connection(ioc));
+    auto conn = boost::shared_ptr<connection>(new connection(ioc));
 
-    connection->set_callback(cb_);
+    conn->set_callback(cb_);
 
-    acceptor->async_accept(connection->socket(),
-                        [this, connection, &ep](const error_code& ec)
+    acceptor->async_accept(conn->socket(),
+                        [this, conn, &ep](const error_code& ec)
                         {
                             cout << "handler called:" << ec << endl;
                             if(!ec)
                             {
-                                connection->run();
+                                conn->run();
                             }
 
                             this->run(ep);
                         });
 }
 
-void Server::Impl::serve() {
+void server::Impl::serve() {
     net::ip::tcp::endpoint endpoint{net::ip::tcp::v4(), 8081};
     acceptor = make_shared<net::ip::tcp::acceptor>(ioc, endpoint);
     acceptor->listen();
@@ -67,6 +67,6 @@ void Server::Impl::serve() {
     ioc.run();
 }
 
-void Server::Impl::set_callback(cb callback) {
+void server::Impl::set_callback(cb callback) {
     cb_ = callback;
 }

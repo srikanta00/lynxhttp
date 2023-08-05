@@ -8,11 +8,11 @@
 
 using namespace std;
 
-class Server 
+class server 
 {
 public:
-    Server();
-    virtual ~Server();
+    server();
+    virtual ~server();
 
     void serve();
 

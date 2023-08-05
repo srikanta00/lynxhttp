@@ -35,7 +35,7 @@ void response::set_data(const std::string& data) {
     data_ = data;
 }
 
-void response::set_connection(const Connection::Ptr& conn) {
+void response::set_connection(const connection::Ptr& conn) {
     conn_ = conn;
 }
 

@@ -11,13 +11,13 @@
 
 namespace net = boost::asio;
 
-typedef void(*cb)(const request& req, const response& resp);
+typedef void(*cb)(const request::ptr req, const response::ptr resp);
 
-class Connection : public boost::enable_shared_from_this<Connection>
+class connection : public boost::enable_shared_from_this<connection>
 {
 public:
-    Connection(net::io_service& ios);
-    virtual ~Connection();
+    connection(net::io_service& ios);
+    virtual ~connection();
 
     net::ip::tcp::socket& socket();
     void run();
@@ -26,21 +26,18 @@ public:
 
     request& req();
     void set_req(const std::string& data);
-    response& resp();
-    void set_resp(const std::string& data);
 
     void handle_request();
 
-    typedef boost::shared_ptr<Connection> Ptr;
-    
+    typedef boost::shared_ptr<connection> Ptr;
+
 private:
     net::ip::tcp::socket socket_;
     boost::array<uint8_t, 8000> data_;
 
     cb cb_;
 
-    request req_;
-    response resp_;
+    boost::shared_ptr<request> req_;
 };
 
 #endif // __LYNXHTTP_CONNECTION__
