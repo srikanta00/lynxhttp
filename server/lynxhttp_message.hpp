@@ -39,12 +39,14 @@ public:
     void set_connection(const boost::shared_ptr<connection>& conn);
 
     void send(const std::string& resp);
+    void send(int status_code, const std::string& resp);
 
     typedef boost::shared_ptr<response> ptr;
 
     std::string serialize();
 
 private:
+    int status_code_;
     std::map<std::string, std::string> header_;
     std::string body_;
 

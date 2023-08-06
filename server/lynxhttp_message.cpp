@@ -1,5 +1,6 @@
 #include "lynxhttp_message.hpp"
 #include "lynxhttp_connection.hpp"
+#include "lynxhttp_response_status_code.hpp"
 
 #include <iostream>
 
@@ -99,24 +100,28 @@ void response::set_connection(const connection::Ptr& conn) {
 std::string response::serialize() {
     std::string response;
 
-    response = "HTTP/" + header_["version"] + " 200 OK" +"\r\n";
+    response = "HTTP/" + header_["version"] + " " + response_status_code::to_string(status_code_) +"\r\n";
 
     for (const auto& [key, value]: header_) {
         if (key == "version" || key == "path" || key == "version") continue;
         response = response + key + ": " + value + "\r\n";
     }
 
-    response = response + "\r\n";
-    response = response + body_;
+    if (body_.length()) {
+        response = response + "\r\n";
+        response = response + body_;
+    }
 
     return response;
 }
 
 void response::send(const std::string& resp) {
-    std::cout << "response send called" << std::endl;
+    send(200, resp);
+}
 
+void response::send(int status_code, const std::string& resp) {
     auto header = conn_->req().header();
-
+    status_code_ = status_code;
     header_["version"] = header["version"];
     header_["Content-Length"] = std::to_string(resp.length());
     body_ = resp;
@@ -127,5 +132,4 @@ void response::send(const std::string& resp) {
             std::cout << "Message sent" << std::endl;
         }
     );
-
 }

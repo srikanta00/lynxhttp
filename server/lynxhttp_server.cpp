@@ -8,8 +8,9 @@ namespace net = boost::asio;
 class server::Impl 
 {
 public:
-    Impl() {
-
+    Impl(std::string address = "", unsigned short port = 80) {
+        address_ = address;
+        port_ = port;
     }
 
     void run(net::ip::tcp::endpoint& endpoint);
@@ -19,12 +20,13 @@ public:
 private:
     net::io_service ioc;
     shared_ptr<net::ip::tcp::acceptor> acceptor; //{ioc, endpoint};
-
+    std::string address_;
+    unsigned short port_;
     cb cb_;
 };
 
-server::server() {
-    impl_ = new Impl{};
+server::server(std::string address, unsigned short port) {
+    impl_ = new Impl(address, port);
 }
 
 server::~server() {
@@ -59,11 +61,13 @@ void server::Impl::run(net::ip::tcp::endpoint& ep) {
 }
 
 void server::Impl::serve() {
-    net::ip::tcp::endpoint endpoint{net::ip::tcp::v4(), 8081};
+    auto address = net::ip::make_address(address_);
+    // net::ip::tcp::endpoint endpoint{net::ip::tcp::v4(), port_};
+    net::ip::tcp::endpoint endpoint{address, port_};
     acceptor = make_shared<net::ip::tcp::acceptor>(ioc, endpoint);
     acceptor->listen();
     run(endpoint);
-
+    
     ioc.run();
 }
 

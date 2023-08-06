@@ -11,7 +11,7 @@ using namespace std;
 class server 
 {
 public:
-    server();
+    server(std::string address = "0.0.0.0", unsigned short port = 80);
     virtual ~server();
 
     void serve();
