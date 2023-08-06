@@ -17,6 +17,7 @@ public:
     std::string data() const;
     void set_data(const std::string& data);
     int parse();
+    const std::map<std::string, std::string> header() const;
     const std::string& body() const;
 
     typedef boost::shared_ptr<request> ptr;
@@ -37,9 +38,11 @@ public:
 
     void set_connection(const boost::shared_ptr<connection>& conn);
 
-    void send(const std::string& resp) const;
+    void send(const std::string& resp);
 
     typedef boost::shared_ptr<response> ptr;
+
+    std::string serialize();
 
 private:
     std::map<std::string, std::string> header_;

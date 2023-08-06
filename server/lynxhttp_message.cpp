@@ -67,6 +67,10 @@ int request::parse() {
     return 0;
 }
 
+const std::map<std::string, std::string> request::header() const {
+    return header_;
+}
+
 const std::string& request::body() const {
     return body_;
 }
@@ -92,10 +96,32 @@ void response::set_connection(const connection::Ptr& conn) {
     conn_ = conn;
 }
 
-void response::send(const std::string& resp) const {
+std::string response::serialize() {
+    std::string response;
+
+    response = "HTTP/" + header_["version"] + " 200 OK" +"\r\n";
+
+    for (const auto& [key, value]: header_) {
+        if (key == "version" || key == "path" || key == "version") continue;
+        response = response + key + ": " + value + "\r\n";
+    }
+
+    response = response + "\r\n";
+    response = response + body_;
+
+    return response;
+}
+
+void response::send(const std::string& resp) {
     std::cout << "response send called" << std::endl;
 
-    conn_->socket().async_write_some(boost::asio::buffer(resp),
+    auto header = conn_->req().header();
+
+    header_["version"] = header["version"];
+    header_["Content-Length"] = std::to_string(resp.length());
+    body_ = resp;
+
+    conn_->socket().async_write_some(boost::asio::buffer(serialize()),
         [](const boost::system::error_code& err,
                         std::size_t bytes_transferred) {
             std::cout << "Message sent" << std::endl;

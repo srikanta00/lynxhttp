@@ -7,7 +7,7 @@ int main() {
     srv.handle("/", [](const request::ptr req, const response::ptr resp){
         std::cout << "data received: " << req->body() << std::endl;
 
-        resp->send("Hi there.");
+        resp->send("Hi there. Greetings...");
     });
     srv.serve();
 
