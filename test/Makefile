@@ -9,6 +9,8 @@ OBJECTS := $(notdir $(SOURCES:.cpp=.o))
 
 LIBS = -L/usr/local/lib/ -lboost_system -lpthread -lboost_thread
 
+FLAGS = -g
+
 SHARED_OBJECTS := lynxhttp
 SHARED_OBJECTS_HOME = ..
 SHARED_OBJECTS_DIR = $(SHARED_OBJECTS_HOME)/Bin
@@ -21,7 +23,7 @@ $(TARGET) : $(SHARED_OBJECTS) $(OBJECTS)
 
 %.o : %.cpp
 	@echo Compiling $<
-	@g++ $(INCLUDES) -o $@ -c $<
+	@g++ $(INCLUDES) $(FLAGS) -o $@ -c $<
 
 lynxhttp :
 	$(MAKE) --directory $(SHARED_OBJECTS_HOME)

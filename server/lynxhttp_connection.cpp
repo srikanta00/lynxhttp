@@ -20,7 +20,8 @@ void connection::run() {
     socket_.async_read_some(boost::asio::buffer(data_), 
         [sp = shared_from_this()](const boost::system::error_code& err,
         std::size_t bytes_transferred){
-
+            
+            /*TODO: avoid memory copy.*/
             sp->set_req(std::string(sp->data_.begin(), sp->data_.end()));
             sp->handle_request();
         }
@@ -40,6 +41,7 @@ void connection::set_req(const std::string& data) {
 }
 
 void connection::handle_request() {
+    req_->parse();
     auto resp = boost::shared_ptr<response>(new response());
     resp->set_connection(shared_from_this());
     cb_(req_, resp);

@@ -2,6 +2,7 @@
 #define __LYNXHTTP_MESSAGE__
 
 #include <string>
+#include <map>
 
 #include <boost/asio.hpp>
 #include <boost/enable_shared_from_this.hpp>
@@ -15,10 +16,14 @@ public:
     virtual ~request();
     std::string data() const;
     void set_data(const std::string& data);
+    int parse();
+    const std::string& body() const;
 
     typedef boost::shared_ptr<request> ptr;
 
 private:
+    std::map<std::string, std::string> header_;
+    std::string body_;
     std::string data_;
 };
 
@@ -37,6 +42,9 @@ public:
     typedef boost::shared_ptr<response> ptr;
 
 private:
+    std::map<std::string, std::string> header_;
+    std::string body_;
+
     std::string data_;
     boost::shared_ptr<connection> conn_;
 };

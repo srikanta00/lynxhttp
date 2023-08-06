@@ -7,7 +7,7 @@ LIBS = -L/usr/local/lib/ -lboost_system
 
 VPATH := server
 
-FLAGS = -fPIC
+FLAGS = -fPIC -g
 
 SOURCES = lynxhttp_message.cpp \
 		  lynxhttp_connection.cpp \
