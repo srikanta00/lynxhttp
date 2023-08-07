@@ -1,2 +1,32 @@
-# lynxhttp
-Embedded HTTP Server is under construction
+# lynxhttp -  - High Level Asynchronous HTTP Library
+A C++ API level abstraction of asynchronous HTTP operations. The server can handle an HTTP request asynchronously and send the response when it is ready. The response can also be sent asynchronously without waiting for the actual delivery.
+
+# HTTP Server
+Example of a bare minimum server.
+```
+#include <lynxhttp_server.hpp>
+
+int main(int argc, char** argv) {
+
+    if(argc != 3)
+    {
+        std::cerr
+        << "Usage: httpserver <address> <port>\n"
+        << "Example:\n"
+        << "    httpserver 0.0.0.0 8080\n";
+        return EXIT_FAILURE;
+    }
+
+    server srv(std::string(argv[1]), static_cast<unsigned short>(std::atoi(argv[2])));
+
+    srv.handle("/", [](const request::ptr req, const response::ptr resp){
+        std::cout << "data received: " << req->body() << std::endl;
+
+        resp->send("Hi there. Greetings...");
+    });
+
+    srv.serve();
+
+    return EXIT_SUCCESS;
+}
+```
