@@ -22,11 +22,28 @@ int main(int argc, char** argv) {
     srv.handle("/", [](const request::ptr req, const response::ptr resp){
         std::cout << "data received: " << req->body() << std::endl;
 
-        resp->send("Hi there. Greetings...");
+        resp->send(200, "Hi there. Greetings...\n");
     });
 
     srv.serve();
 
     return EXIT_SUCCESS;
 }
+```
+
+# Make the library
+Run `make` command from the home directory. A shared object (liblynxhttp.so) will be created in the `Bin` directory. It can be linked with your application.
+
+# Example
+An example server program is availble in the `test` directory. To make and run that program:
+```
+cd test
+make
+sudo ./httpserver 0.0.0.0 80
+```
+
+Test the server with the curl command.
+```
+curl -X POST 127.0.0.1:80 -d 'hello'
+  Hi there. Greetings...
 ```
