@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
     srv.handle("/", [](const request::ptr req, const response::ptr resp){
         std::cout << "data received: " << req->body() << std::endl;
 
-        resp->send("Hi there. Greetings...");
+        resp->send(200, "Hi there. Greetings...\n");
     });
 
     srv.serve();
