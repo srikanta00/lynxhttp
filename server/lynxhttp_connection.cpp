@@ -1,31 +1,83 @@
 #include <iostream>
+#include<boost/make_shared.hpp>
 
 #include "lynxhttp_connection.hpp"
 
-connection::connection(net::io_service& ios) :
-            socket_(ios) {
+connection::connection(net::ip::tcp::socket socket) {
+    ssl_enabled_ = false;
+    socket_ = boost::make_shared<net::ip::tcp::socket>(std::move(socket));
+    req_ = boost::shared_ptr<request>(new request());
+}
 
+connection::connection(net::ip::tcp::socket socket, net::ssl::context& ssl_context) {
+    ssl_enabled_ = true;
+    ssl_socket_ = boost::make_shared<net::ssl::stream<net::ip::tcp::socket> >(std::move(socket), ssl_context);
     req_ = boost::shared_ptr<request>(new request());
 }
 
 connection::~connection() {
-    std::cout << "connection::destructor called" << std::endl;
+    // std::cout << "connection::destructor called" << std::endl;
+}
+
+net::ssl::stream<net::ip::tcp::socket>& connection::ssl_socket() {
+    return *ssl_socket_;
+}
+
+bool connection::ssl_enabled() {
+    return ssl_enabled_;
 }
 
 net::ip::tcp::socket& connection::socket() {
-    return socket_;
+    return *socket_;
 }
 
 void connection::run() {
-    socket_.async_read_some(boost::asio::buffer(data_), 
-        [sp = shared_from_this()](const boost::system::error_code& err,
-        std::size_t bytes_transferred){
-            
-            /*TODO: avoid memory copy.*/
-            sp->set_req(std::string(sp->data_.begin(), sp->data_.end()));
-            sp->handle_request();
-        }
+    // std::cout << "connection::run" << std::endl;
+    
+    if(ssl_enabled_) {
+        
+        ssl_socket_->async_handshake(boost::asio::ssl::stream_base::server, 
+        [sp = shared_from_this()](const boost::system::error_code& error)
+        {
+            // std::cout << "async_handshake callback" << std::endl;
+            if (!error)
+            {
+                // std::cout << "calling sp->handle_read" << std::endl;
+                sp->handle_read();
+            }
+        });
+
+    } else {
+        handle_read();
+    }
+}
+
+void connection::handle_read() {
+    if (ssl_enabled_) {
+        ssl_socket_->async_read_some(boost::asio::buffer(data_), 
+            [sp = shared_from_this()](const boost::system::error_code& err,
+            std::size_t bytes_transferred){
+                
+                // std::cout << "async_read_some callback" << bytes_transferred << ":" << err << std::endl;
+                /*TODO: avoid memory copy.*/
+                sp->set_req(std::string(sp->data_.begin(), sp->data_.begin() + bytes_transferred));
+                // std::cout << "calling handle request" << std::endl;
+                sp->handle_request();
+            }
         );
+    } else {
+        socket_->async_read_some(boost::asio::buffer(data_), 
+            [sp = shared_from_this()](const boost::system::error_code& err,
+            std::size_t bytes_transferred){
+                
+                // std::cout << "async_read_some callback" << bytes_transferred << ":" << err << std::endl;
+                /*TODO: avoid memory copy.*/
+                sp->set_req(std::string(sp->data_.begin(), sp->data_.begin() + bytes_transferred));
+                // std::cout << "calling handle request" << std::endl;
+                sp->handle_request();
+            }
+        );
+    }
 }
 
 void connection::set_callback(cb callback) {
@@ -44,5 +96,6 @@ void connection::handle_request() {
     req_->parse();
     auto resp = boost::shared_ptr<response>(new response());
     resp->set_connection(shared_from_this());
+    // std::cout << "calling callback" << std::endl;
     cb_(req_, resp);
 }

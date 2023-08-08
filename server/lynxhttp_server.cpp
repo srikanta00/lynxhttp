@@ -1,4 +1,5 @@
 #include <boost/asio.hpp>
+#include <boost/asio/ssl.hpp>
 
 #include "lynxhttp_server.hpp"
 
@@ -8,25 +9,49 @@ namespace net = boost::asio;
 class server::Impl 
 {
 public:
-    Impl(std::string address = "", unsigned short port = 80) {
-        address_ = address;
-        port_ = port;
+    Impl(std::string address, unsigned short port, bool ssl) :
+    address_(address), port_(port), ssl_enabled_(ssl),
+    ssl_context_(net::ssl::context::sslv23) {
     }
 
     void run(net::ip::tcp::endpoint& endpoint);
     void serve();
 
     void set_callback(cb callback);
+    void set_certificate_chain_file(std::string cert_file) {
+        cert_file_ = cert_file;
+    }
+
+    void set_private_key_file(std::string key_file) {
+        priv_key_file_ = key_file;
+    }
+
+    void set_private_key_password(std::string passwd) {
+        priv_key_passwd_ = passwd;
+    }
+
 private:
-    net::io_service ioc;
-    shared_ptr<net::ip::tcp::acceptor> acceptor; //{ioc, endpoint};
+    std::string get_password() {
+        return priv_key_passwd_;
+    }
+
+    net::io_service ios_;
+    shared_ptr<net::ip::tcp::acceptor> acceptor_; //{ioc, endpoint};
+    
+    bool ssl_enabled_;
+    net::ssl::context ssl_context_;
+
+    std::string cert_file_;
+    std::string priv_key_file_;
+    std::string priv_key_passwd_;
+
     std::string address_;
     unsigned short port_;
     cb cb_;
 };
 
-server::server(std::string address, unsigned short port) {
-    impl_ = new Impl(address, port);
+server::server(std::string address, unsigned short port, bool ssl) {
+    impl_ = new Impl(address, port, ssl);
 }
 
 server::~server() {
@@ -41,13 +66,25 @@ void server::handle(const std::string& path, cb callback) {
     impl_->set_callback(callback);
 }
 
+void server::set_certificate_chain_file(std::string cert_file) {
+    impl_->set_certificate_chain_file(cert_file);
+}
+
+void server::set_private_key_file(std::string key_file) {
+    impl_->set_private_key_file(key_file);
+}
+
+void server::set_private_key_password(std::string passwd) {
+    impl_->set_private_key_password(passwd);
+}
+
 void server::Impl::run(net::ip::tcp::endpoint& ep) {
-    /* std::make_shared did not work with shared_from_this(). Don't know why. */
-    auto conn = boost::shared_ptr<connection>(new connection(ioc));
+    /*
+    auto conn = boost::shared_ptr<connection>(new connection(ios_, ssl_context_));
 
     conn->set_callback(cb_);
 
-    acceptor->async_accept(conn->socket(),
+    acceptor_->async_accept(conn->socket(),
                         [this, conn, &ep](const error_code& ec)
                         {
                             cout << "handler called:" << ec << endl;
@@ -58,17 +95,51 @@ void server::Impl::run(net::ip::tcp::endpoint& ep) {
 
                             this->run(ep);
                         });
+    */
+   acceptor_->async_accept([this, &ep](const error_code& ec, net::ip::tcp::socket socket)
+                        {
+                            cout << "handler called:" << ec << endl;
+                            if(!ec)
+                            {
+                                // auto conn = boost::shared_ptr<connection>(new connection(std::move(socket), ssl_context_));
+                                
+                                boost::shared_ptr<connection> conn;
+                                if (ssl_enabled_) {
+                                    conn = boost::shared_ptr<connection>(new connection(std::move(socket), ssl_context_));
+                                } else {
+                                    conn = boost::shared_ptr<connection>(new connection(std::move(socket)));
+                                }
+                                conn->set_callback(cb_);
+                                conn->run();
+                            }
+
+                            this->run(ep);
+                        });
 }
 
 void server::Impl::serve() {
+    std::cout << "Server started." << std::endl;
+
+    if (ssl_enabled_) {
+        ssl_context_.set_options(
+            boost::asio::ssl::context::default_workarounds
+            | boost::asio::ssl::context::no_sslv2
+            | boost::asio::ssl::context::single_dh_use);
+
+    ssl_context_.set_password_callback(std::bind(&server::Impl::get_password, this));
+    ssl_context_.use_certificate_chain_file(cert_file_);
+    ssl_context_.use_private_key_file(priv_key_file_, boost::asio::ssl::context::pem);
+    // ss_context_.use_tmp_dh_file("dh2048.pem");
+    }
+
     auto address = net::ip::make_address(address_);
     // net::ip::tcp::endpoint endpoint{net::ip::tcp::v4(), port_};
     net::ip::tcp::endpoint endpoint{address, port_};
-    acceptor = make_shared<net::ip::tcp::acceptor>(ioc, endpoint);
-    acceptor->listen();
+    acceptor_ = make_shared<net::ip::tcp::acceptor>(ios_, endpoint);
+    acceptor_->listen();
     run(endpoint);
     
-    ioc.run();
+    ios_.run();
 }
 
 void server::Impl::set_callback(cb callback) {

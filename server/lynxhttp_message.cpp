@@ -126,10 +126,19 @@ void response::send(int status_code, const std::string& resp) {
     header_["Content-Length"] = std::to_string(resp.length());
     body_ = resp;
 
-    conn_->socket().async_write_some(boost::asio::buffer(serialize()),
-        [](const boost::system::error_code& err,
-                        std::size_t bytes_transferred) {
-            std::cout << "Message sent" << std::endl;
-        }
-    );
+    if(conn_->ssl_enabled()) {
+        conn_->ssl_socket().async_write_some(boost::asio::buffer(serialize()),
+            [sp = shared_from_this()](const boost::system::error_code& err,
+                            std::size_t bytes_transferred) {
+                // std::cout << "Message sent" << std::endl;
+            }
+        );
+    } else {
+        conn_->socket().async_write_some(boost::asio::buffer(serialize()),
+            [sp = shared_from_this()](const boost::system::error_code& err,
+                            std::size_t bytes_transferred) {
+                // std::cout << "Message sent" << std::endl;
+            }
+        );
+    }
 }

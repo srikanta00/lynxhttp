@@ -4,6 +4,7 @@
 #include<string>
 
 #include <boost/asio.hpp>
+#include <boost/asio/ssl.hpp>
 #include <boost/array.hpp>
 #include <boost/enable_shared_from_this.hpp>
 
@@ -16,10 +17,14 @@ typedef void(*cb)(const request::ptr req, const response::ptr resp);
 class connection : public boost::enable_shared_from_this<connection>
 {
 public:
-    connection(net::io_service& ios);
+    connection(net::ip::tcp::socket socket);
+    connection(net::ip::tcp::socket socket, net::ssl::context& ssl_context);
+
     virtual ~connection();
 
+    net::ssl::stream<net::ip::tcp::socket>& ssl_socket();
     net::ip::tcp::socket& socket();
+
     void run();
 
     void set_callback(cb callback);
@@ -28,15 +33,20 @@ public:
     void set_req(const std::string& data);
 
     void handle_request();
+    bool ssl_enabled();
 
     typedef boost::shared_ptr<connection> Ptr;
 
 private:
-    net::ip::tcp::socket socket_;
+    void handle_read();
+
+    boost::shared_ptr<net::ip::tcp::socket> socket_;
+    boost::shared_ptr<net::ssl::stream<net::ip::tcp::socket> > ssl_socket_;
+    bool ssl_enabled_;
+
     boost::array<uint8_t, 8000> data_;
 
     cb cb_;
-
     boost::shared_ptr<request> req_;
 };
 

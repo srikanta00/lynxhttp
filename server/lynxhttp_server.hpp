@@ -11,12 +11,16 @@ using namespace std;
 class server 
 {
 public:
-    server(std::string address = "0.0.0.0", unsigned short port = 80);
+    server(std::string address = "0.0.0.0", unsigned short port = 80, bool ssl = false);
     virtual ~server();
 
     void serve();
 
     void handle(const std::string& path, cb callback);
+
+    void set_certificate_chain_file(std::string cert_file);
+    void set_private_key_file(std::string key_file);
+    void set_private_key_password(std::string passwd);
 
 private:
     cb cb_;

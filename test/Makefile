@@ -7,7 +7,7 @@ SOURCES = httpserver.cpp
 
 OBJECTS := $(notdir $(SOURCES:.cpp=.o))
 
-LIBS = -L/usr/local/lib/ -lboost_system -lpthread -lboost_thread
+LIBS = -L/usr/local/lib/ -lboost_system -lpthread -lboost_thread -lssl -lcrypto
 
 FLAGS = -g
 
