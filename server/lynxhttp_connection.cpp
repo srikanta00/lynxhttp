@@ -60,9 +60,14 @@ void connection::handle_read() {
                 
                 // std::cout << "async_read_some callback" << bytes_transferred << ":" << err << std::endl;
                 /*TODO: avoid memory copy.*/
-                sp->set_req(std::string(sp->data_.begin(), sp->data_.begin() + bytes_transferred));
-                // std::cout << "calling handle request" << std::endl;
-                sp->handle_request();
+                sp->req().append_data(std::string(sp->data_.begin(), sp->data_.begin() + bytes_transferred));
+                
+                if (sp->req().parse() == request::parsing_state_t::COMPLETE) {
+                    // std::cout << "calling handle request" << std::endl;
+                    sp->handle_request();
+                } else {
+                    sp->handle_read();
+                }
             }
         );
     } else {
@@ -72,9 +77,14 @@ void connection::handle_read() {
                 
                 // std::cout << "async_read_some callback" << bytes_transferred << ":" << err << std::endl;
                 /*TODO: avoid memory copy.*/
-                sp->set_req(std::string(sp->data_.begin(), sp->data_.begin() + bytes_transferred));
-                // std::cout << "calling handle request" << std::endl;
-                sp->handle_request();
+                sp->req().append_data(std::string(sp->data_.begin(), sp->data_.begin() + bytes_transferred));
+                
+                if (sp->req().parse() == request::parsing_state_t::COMPLETE) {
+                    // std::cout << "calling handle request" << std::endl;
+                    sp->handle_request();
+                } else {
+                    sp->handle_read();
+                }
             }
         );
     }
@@ -93,7 +103,6 @@ void connection::set_req(const std::string& data) {
 }
 
 void connection::handle_request() {
-    req_->parse();
     auto resp = boost::shared_ptr<response>(new response());
     resp->set_connection(shared_from_this());
     // std::cout << "calling callback" << std::endl;

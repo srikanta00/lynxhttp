@@ -5,7 +5,8 @@
 #include <iostream>
 
 request::request() {
-
+    parsing_state_ = EMPTY;
+    parsed_len_ = 0;
 }
 
 request::~request() {
@@ -20,52 +21,85 @@ void request::set_data(const std::string& data) {
     data_ = data;
 }
 
+void request::append_data(const std::string& data) {
+    data_ = data_ + data;
+}
 
-int request::parse() {
-    int index = 0;
-    int len = 0;
+request::parsing_state_t request::parsing_state() {
+    return parsing_state_;
+}
+
+request::parsing_state_t request::parse() {
+    int index = parsed_len_;
     int i, l, s;
 
-    i = data_.find("\r\n", index);
-    if (i == std::string::npos) {
-        return -1;
+    if (parsing_state_ == EMPTY) {
+        i = data_.find("\r\n", index);
+        if (i == std::string::npos) {
+            return EMPTY;
+        }
+
+        auto request_line = data_.substr(index, i - index);
+        index = i + 2;
+
+        s = 0;
+        i = request_line.find(" ", s);
+        auto method = request_line.substr(s, i - s);
+        header_["method"] = method;
+
+        s = request_line.find_first_not_of(" ", i);
+        i = request_line.find(" ", s);
+        auto path = request_line.substr(s, i - s);
+        header_["path"] = path;
+
+        s = request_line.find("/", i);
+        auto version = request_line.substr(s+1);
+        header_["version"] = method;
+
+        parsing_state_ = INCOMPLETE;
     }
-
-    auto request_line = data_.substr(index, i - index);
-    index = i + 2;
-
-    s = 0;
-    i = request_line.find(" ", s);
-    auto method = request_line.substr(s, i - s);
-    header_["method"] = method;
-
-    s = request_line.find_first_not_of(" ", i);
-    i = request_line.find(" ", s);
-    auto path = request_line.substr(s, i - s);
-    header_["path"] = path;
-
-    s = request_line.find("/", i);
-    auto version = request_line.substr(s+1);
-    header_["version"] = method;
+    
+    parsed_len_ = index;
 
     while(((i = data_.find("\r\n", index)) - index) > 0) {
+
         auto header_line = data_.substr(index, i - index);
         index = i + 2;
 
         i = header_line.find(":");
+        if (i == std::string::npos) return parsing_state_;
         auto key = header_line.substr(0, i);
 
         s = header_line.find_first_not_of(" ", i + 1);
+        if (s == std::string::npos) return parsing_state_;
         auto value = header_line.substr(s);
 
         header_[key] = value;
+        parsed_len_ = index;
     }
     
     index += 2;
 
-    body_ = data_.substr(index);
+    if (header_.find("Content-Length") == header_.end()) {
+        return parsing_state_;
+    }
 
-    return 0;
+    int len = std::stoi(header_["Content-Length"]);
+
+    if ((data_.length() - index) < len) {
+        parsing_state_ = INCOMPLETE;
+        return INCOMPLETE;
+    }
+
+    if ((data_.length() - index) == len) {
+        body_ = data_.substr(index);
+        parsed_len_ = data_.length();
+        parsing_state_ = COMPLETE;
+        return COMPLETE;
+    }
+
+    parsing_state_ = ERROR;
+    return ERROR;
 }
 
 const std::map<std::string, std::string> request::header() const {

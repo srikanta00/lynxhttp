@@ -16,16 +16,30 @@ public:
     virtual ~request();
     std::string data() const;
     void set_data(const std::string& data);
-    int parse();
+    void append_data(const std::string& data);
+
     const std::map<std::string, std::string> header() const;
     const std::string& body() const;
 
     typedef boost::shared_ptr<request> ptr;
 
+    enum parsing_state_t {
+        EMPTY,
+        INCOMPLETE,
+        COMPLETE,
+        ERROR
+    };
+
+    parsing_state_t parse();
+    parsing_state_t parsing_state();
+
 private:
     std::map<std::string, std::string> header_;
     std::string body_;
     std::string data_;
+
+    parsing_state_t parsing_state_;
+    int parsed_len_;
 };
 
 class response : public boost::enable_shared_from_this<response>

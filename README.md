@@ -39,11 +39,21 @@ An example server program is availble in the `test` directory. To make and run t
 ```
 cd test
 make
-sudo ./httpserver 0.0.0.0 80
+sudo ./httpserver 0.0.0.0 8080
 ```
 
 Test the server with the curl command.
 ```
-curl -X POST 127.0.0.1:80 -d 'hello'
+curl -X POST 127.0.0.1:8080 -d 'hello'
   Hi there. Greetings...
+```
+
+Start the server with SSL enabled.
+```
+./httpserver 0.0.0.0 8081 1
+```
+Test using curl command.
+```
+curl -k -X POST https://127.0.0.1:8081 -d 'hello'
+    Hi there. Greetings...
 ```
