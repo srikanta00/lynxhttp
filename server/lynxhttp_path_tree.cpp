@@ -39,9 +39,7 @@ callback path_tree_node::get_callback() {
 }
 
 path_tree_node::ptr path_tree_node::get_child(std::string& key) {
-    std::cout << "child 1" << key << std::endl;
-    if(child_.find(key) == child_.end()) return std::shared_ptr<path_tree_node>(nullptr);;
-    std::cout << "child 2" << key << std::endl;
+    if(child_.find(key) == child_.end()) return std::shared_ptr<path_tree_node>(nullptr);
     return child_[key];
 }
 

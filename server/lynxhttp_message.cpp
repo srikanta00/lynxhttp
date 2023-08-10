@@ -1,8 +1,10 @@
+#include <iostream>
+
+#include <boost/algorithm/string.hpp>
+
 #include "lynxhttp_message.hpp"
 #include "lynxhttp_connection.hpp"
 #include "lynxhttp_response_status_code.hpp"
-
-#include <iostream>
 
 request::request() {
     parsing_state_ = EMPTY;
@@ -29,6 +31,22 @@ request::parsing_state_t request::parsing_state() {
     return parsing_state_;
 }
 
+void request::parse_query_params(std::string& params) {
+    std::vector<std::string> strs;
+    boost::split(strs, params, boost::is_any_of("&"));
+
+    int i;
+    for (auto str : strs) {
+        if (str.length() == 0) continue;
+
+        i = str.find("=");
+        auto key = str.substr(0, i);
+        auto val = str.substr(i + 1);
+
+        query_params_[key] = val;
+    }
+}
+
 request::parsing_state_t request::parse() {
     int index = parsed_len_;
     int i, l, s;
@@ -40,6 +58,7 @@ request::parsing_state_t request::parse() {
         }
 
         auto request_line = data_.substr(index, i - index);
+
         index = i + 2;
 
         s = 0;
@@ -47,10 +66,27 @@ request::parsing_state_t request::parse() {
         auto method = request_line.substr(s, i - s);
         header_["method"] = method;
 
+        std::string delim = " ";
+        bool b_query_params = false;
+
+        if (request_line.find("?", i) != std::string::npos) {
+            delim = "?";
+            b_query_params = true;
+        }
+
         s = request_line.find_first_not_of(" ", i);
-        i = request_line.find(" ", s);
+        i = request_line.find(delim, s);
         auto path = request_line.substr(s, i - s);
         header_["path"] = path;
+
+        if (b_query_params) {
+            s = ++i;
+            i = request_line.find(" ", s);
+
+            auto params = request_line.substr(s, i - s);
+            parse_query_params(params);
+            i++;
+        }
 
         s = request_line.find("/", i);
         auto version = request_line.substr(s+1);
@@ -102,12 +138,16 @@ request::parsing_state_t request::parse() {
     return ERROR;
 }
 
-const std::map<std::string, std::string> request::header() const {
+const std::map<std::string, std::string>& request::header() const {
     return header_;
 }
 
 const std::string& request::body() const {
     return body_;
+}
+
+const std::map<std::string, std::string>& request::query_params() const {
+    return query_params_;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////

@@ -18,7 +18,8 @@ public:
     void set_data(const std::string& data);
     void append_data(const std::string& data);
 
-    const std::map<std::string, std::string> header() const;
+    const std::map<std::string, std::string>& header() const;
+    const std::map<std::string, std::string>& query_params() const;
     const std::string& body() const;
 
     typedef boost::shared_ptr<request> ptr;
@@ -34,7 +35,10 @@ public:
     parsing_state_t parsing_state();
 
 private:
+    void parse_query_params(std::string& params);
+    
     std::map<std::string, std::string> header_;
+    std::map<std::string, std::string> query_params_;
     std::string body_;
     std::string data_;
 
