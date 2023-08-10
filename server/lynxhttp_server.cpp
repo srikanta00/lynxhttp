@@ -12,12 +12,13 @@ public:
     Impl(std::string address, unsigned short port, bool ssl) :
     address_(address), port_(port), ssl_enabled_(ssl),
     ssl_context_(net::ssl::context::sslv23) {
+        path_tree_ = std::make_shared<path_tree>();
     }
 
     void run(net::ip::tcp::endpoint& endpoint);
     void serve();
 
-    void set_callback(cb callback);
+    void add_path(const std::string& path, callback cb);
     void set_certificate_chain_file(std::string cert_file) {
         cert_file_ = cert_file;
     }
@@ -47,7 +48,7 @@ private:
 
     std::string address_;
     unsigned short port_;
-    cb cb_;
+    path_tree::ptr path_tree_;
 };
 
 server::server(std::string address, unsigned short port, bool ssl) {
@@ -62,8 +63,8 @@ void server::serve() {
     impl_->serve();
 }
 
-void server::handle(const std::string& path, cb callback) {
-    impl_->set_callback(callback);
+void server::handle(const std::string& path, callback cb) {
+    impl_->add_path(path, cb);
 }
 
 void server::set_certificate_chain_file(std::string cert_file) {
@@ -109,7 +110,7 @@ void server::Impl::run(net::ip::tcp::endpoint& ep) {
                                 } else {
                                     conn = boost::shared_ptr<connection>(new connection(std::move(socket)));
                                 }
-                                conn->set_callback(cb_);
+                                conn->set_path_tree(path_tree_);
                                 conn->run();
                             }
 
@@ -142,6 +143,6 @@ void server::Impl::serve() {
     ios_.run();
 }
 
-void server::Impl::set_callback(cb callback) {
-    cb_ = callback;
+void server::Impl::add_path(const std::string& path, callback cb) {
+    path_tree_->add_path(path, cb);
 }

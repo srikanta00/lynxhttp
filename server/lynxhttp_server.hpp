@@ -5,6 +5,7 @@
 
 #include "lynxhttp_message.hpp"
 #include "lynxhttp_connection.hpp"
+#include "lynxhttp_path_tree.hpp"
 
 using namespace std;
 
@@ -16,15 +17,13 @@ public:
 
     void serve();
 
-    void handle(const std::string& path, cb callback);
+    void handle(const std::string& path, callback cb);
 
     void set_certificate_chain_file(std::string cert_file);
     void set_private_key_file(std::string key_file);
     void set_private_key_password(std::string passwd);
 
 private:
-    cb cb_;
-
     class Impl;
     Impl *impl_ = nullptr;
 };

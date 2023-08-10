@@ -90,8 +90,8 @@ void connection::handle_read() {
     }
 }
 
-void connection::set_callback(cb callback) {
-    cb_ = callback;
+void connection::set_path_tree(path_tree::ptr path_tree) {
+    path_tree_ = path_tree;
 }
 
 request& connection::req() {
@@ -106,5 +106,9 @@ void connection::handle_request() {
     auto resp = boost::shared_ptr<response>(new response());
     resp->set_connection(shared_from_this());
     // std::cout << "calling callback" << std::endl;
-    cb_(req_, resp);
+
+    auto header = req_->header();
+    auto path = header["path"];
+
+    path_tree_->path_node(path)->get_callback()(req_, resp);
 }

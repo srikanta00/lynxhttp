@@ -26,11 +26,18 @@ int main(int argc, char** argv) {
 
     srv.handle("/", [](const request::ptr req, const response::ptr resp){
 
-        std::cout << "data received: " << req->body() << std::endl;
+        std::cout << "/: data received: " << req->body() << std::endl;
 
         resp->send(200, "Hi there. Greetings...\n");
     });
 
+    srv.handle("/path1", [](const request::ptr req, const response::ptr resp){
+
+        std::cout << "/path1: data received: " << req->body() << std::endl;
+
+        resp->send(200, "Hi there. Greetings...\n");
+    });
+    
     srv.serve();
 
     return EXIT_SUCCESS;

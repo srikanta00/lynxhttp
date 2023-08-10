@@ -11,7 +11,8 @@ FLAGS = -fPIC -g
 
 SOURCES = lynxhttp_message.cpp \
 		  lynxhttp_connection.cpp \
-		  lynxhttp_server.cpp
+		  lynxhttp_server.cpp \
+		  lynxhttp_path_tree.cpp
           
 BIN_DIR = ./Bin
 

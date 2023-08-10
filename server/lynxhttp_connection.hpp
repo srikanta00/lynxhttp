@@ -9,10 +9,9 @@
 #include <boost/enable_shared_from_this.hpp>
 
 #include "lynxhttp_message.hpp"
+#include "lynxhttp_path_tree.hpp"
 
 namespace net = boost::asio;
-
-typedef void(*cb)(const request::ptr req, const response::ptr resp);
 
 class connection : public boost::enable_shared_from_this<connection>
 {
@@ -27,7 +26,7 @@ public:
 
     void run();
 
-    void set_callback(cb callback);
+    void set_path_tree(path_tree::ptr path_tree);
 
     request& req();
     void set_req(const std::string& data);
@@ -46,7 +45,7 @@ private:
 
     boost::array<uint8_t, 8000> data_;
 
-    cb cb_;
+    path_tree::ptr path_tree_;
     boost::shared_ptr<request> req_;
 };
 
