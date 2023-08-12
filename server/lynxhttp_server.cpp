@@ -1,5 +1,6 @@
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
+#include <boost/thread.hpp>
 
 #include "lynxhttp_server.hpp"
 
@@ -9,9 +10,9 @@ namespace net = boost::asio;
 class server::Impl 
 {
 public:
-    Impl(std::string address, unsigned short port, bool ssl) :
+    Impl(std::string address, unsigned short port, bool ssl, int n_threads) :
     address_(address), port_(port), ssl_enabled_(ssl),
-    ssl_context_(net::ssl::context::sslv23) {
+    ssl_context_(net::ssl::context::sslv23), n_threads_(n_threads) {
         path_tree_ = std::make_shared<path_tree>();
     }
 
@@ -49,10 +50,13 @@ private:
     std::string address_;
     unsigned short port_;
     path_tree::ptr path_tree_;
+
+    int n_threads_;
+    boost::thread_group thread_group_;
 };
 
-server::server(std::string address, unsigned short port, bool ssl) {
-    impl_ = new Impl(address, port, ssl);
+server::server(std::string address, unsigned short port, bool ssl, int n_threads) {
+    impl_ = new Impl(address, port, ssl, n_threads);
 }
 
 server::~server() {
@@ -99,7 +103,6 @@ void server::Impl::run(net::ip::tcp::endpoint& ep) {
     */
    acceptor_->async_accept([this, &ep](const error_code& ec, net::ip::tcp::socket socket)
                         {
-                            cout << "handler called:" << ec << endl;
                             if(!ec)
                             {
                                 // auto conn = boost::shared_ptr<connection>(new connection(std::move(socket), ssl_context_));
@@ -140,6 +143,12 @@ void server::Impl::serve() {
     acceptor_->listen();
     run(endpoint);
     
+    for (auto i = 0; i < n_threads_ - 1; i++) {
+        thread_group_.add_thread(new boost::thread([this](){
+            ios_.run();
+        }));
+    }
+
     ios_.run();
 }
 

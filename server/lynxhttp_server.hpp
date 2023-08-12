@@ -12,7 +12,7 @@ using namespace std;
 class server 
 {
 public:
-    server(std::string address = "0.0.0.0", unsigned short port = 80, bool ssl = false);
+    server(std::string address = "0.0.0.0", unsigned short port = 80, bool ssl = false, int n_threads = 2);
     virtual ~server();
 
     void serve();
