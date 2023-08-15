@@ -35,9 +35,9 @@ int main(int argc, char** argv) {
 Run `make` command from the home directory. A shared object (liblynxhttp.so) will be created in the `Bin` directory. It can be linked with your application.
 
 # Example
-An example server program is availble in the `test` directory. To make and run that program:
+An example server program is availble in the `examples` directory. To make and run that program:
 ```
-cd test
+cd examples
 make
 sudo ./httpserver 0.0.0.0 8080
 ```
