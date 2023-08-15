@@ -6,6 +6,9 @@
 
 #include "lynxhttp_message.hpp"
 
+namespace lynxhttp {
+namespace server {
+
 typedef void(*callback)(const request::ptr req, const response::ptr resp);
 
 class path_tree_node {
@@ -43,5 +46,8 @@ public:
 private:
     path_tree_node::ptr head_;
 };
+
+} // namespace server
+} // namespace lynxhttp
 
 #endif // __LYNXHTTP_PATH_TREE__

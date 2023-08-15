@@ -7,6 +7,9 @@
 
 namespace net = boost::asio;
 
+namespace lynxhttp {
+namespace server {
+
 class server::Impl 
 {
 public:
@@ -38,7 +41,7 @@ private:
     }
 
     net::io_service ios_;
-    shared_ptr<net::ip::tcp::acceptor> acceptor_; //{ioc, endpoint};
+    std::shared_ptr<net::ip::tcp::acceptor> acceptor_; //{ioc, endpoint};
     
     bool ssl_enabled_;
     net::ssl::context ssl_context_;
@@ -101,7 +104,7 @@ void server::Impl::run(net::ip::tcp::endpoint& ep) {
                             this->run(ep);
                         });
     */
-   acceptor_->async_accept([this, &ep](const error_code& ec, net::ip::tcp::socket socket)
+   acceptor_->async_accept([this, &ep](const std::error_code& ec, net::ip::tcp::socket socket)
                         {
                             if(!ec)
                             {
@@ -139,7 +142,7 @@ void server::Impl::serve() {
     auto address = net::ip::make_address(address_);
     // net::ip::tcp::endpoint endpoint{net::ip::tcp::v4(), port_};
     net::ip::tcp::endpoint endpoint{address, port_};
-    acceptor_ = make_shared<net::ip::tcp::acceptor>(ios_, endpoint);
+    acceptor_ = std::make_shared<net::ip::tcp::acceptor>(ios_, endpoint);
     acceptor_->listen();
     run(endpoint);
     
@@ -155,3 +158,6 @@ void server::Impl::serve() {
 void server::Impl::add_path(const std::string& path, callback cb) {
     path_tree_->add_path(path, cb);
 }
+
+} // namespace server
+} // namespace lynxhttp

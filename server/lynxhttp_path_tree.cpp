@@ -4,6 +4,9 @@
 
 #include <boost/algorithm/string.hpp>
 
+namespace lynxhttp {
+namespace server {
+
 path_tree_node::path_tree_node(const std::string& key) {
     key_ = key;
 }
@@ -91,3 +94,6 @@ path_tree_node::ptr path_tree::path_node(std::string& path) {
 
     return node;
 }
+
+} // namespace server
+} // namespace lynxhttp

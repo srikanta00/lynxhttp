@@ -6,6 +6,9 @@
 #include "lynxhttp_connection.hpp"
 #include "lynxhttp_response_status_code.hpp"
 
+namespace lynxhttp {
+namespace server {
+
 request::request() {
     parsing_state_ = EMPTY;
     parsed_len_ = 0;
@@ -216,3 +219,6 @@ void response::send(int status_code, const std::string& resp) {
         );
     }
 }
+
+} // namespace server
+} // namespace lynxhttp

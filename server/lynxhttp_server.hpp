@@ -7,7 +7,8 @@
 #include "lynxhttp_connection.hpp"
 #include "lynxhttp_path_tree.hpp"
 
-using namespace std;
+namespace lynxhttp {
+namespace server {
 
 class server 
 {
@@ -27,5 +28,8 @@ private:
     class Impl;
     Impl *impl_ = nullptr;
 };
+
+} // namespace server
+} // namespace lynxhttp
 
 #endif // __LYNXHTTP_SERVER__

@@ -4,6 +4,9 @@
 #include <string>
 #include <map>
 
+namespace lynxhttp {
+namespace server {
+
 std::map<int, std::string> code_map = {
         {200, "OK"},
         {404, "Not Found"},
@@ -22,5 +25,8 @@ public:
         return str;
     }
 };
+
+} // namespace server
+} // namespace lynxhttp
 
 #endif // __LYNXHTTP_RESPONSE_STATUS_CODE__

@@ -3,6 +3,9 @@
 
 #include "lynxhttp_connection.hpp"
 
+namespace lynxhttp {
+namespace server {
+
 connection::connection(net::ip::tcp::socket socket) {
     ssl_enabled_ = false;
     socket_ = boost::make_shared<net::ip::tcp::socket>(std::move(socket));
@@ -112,3 +115,6 @@ void connection::handle_request() {
 
     path_tree_->path_node(path)->get_callback()(req_, resp);
 }
+
+} // namespace server
+} // namespace lynxhttp

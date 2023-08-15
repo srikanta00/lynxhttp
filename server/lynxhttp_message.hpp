@@ -7,6 +7,9 @@
 #include <boost/asio.hpp>
 #include <boost/enable_shared_from_this.hpp>
 
+namespace lynxhttp {
+namespace server {
+
 class connection;
 
 class request : public boost::enable_shared_from_this<request>
@@ -71,5 +74,8 @@ private:
     std::string data_;
     boost::shared_ptr<connection> conn_;
 };
+
+} // namespace server
+} // namespace lynxhttp
 
 #endif // __LYNXHTTP_MESSAGE__

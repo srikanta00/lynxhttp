@@ -1,5 +1,7 @@
 #include <lynxhttp_server.hpp>
 
+namespace lynxserver = lynxhttp::server;
+
 int main(int argc, char** argv) {
 
     if(argc < 3)
@@ -17,21 +19,21 @@ int main(int argc, char** argv) {
         if(static_cast<unsigned short>(std::atoi(argv[3])) == 1) ssl_enabled = true;
     }
 
-    server srv(std::string(argv[1]), static_cast<unsigned short>(std::atoi(argv[2])), ssl_enabled);
+    lynxserver::server srv(std::string(argv[1]), static_cast<unsigned short>(std::atoi(argv[2])), ssl_enabled);
 
     if (ssl_enabled) {
         srv.set_certificate_chain_file("certificate.pem");
         srv.set_private_key_file("key.pem");
     }
 
-    srv.handle("/", [](const request::ptr req, const response::ptr resp){
+    srv.handle("/", [](const lynxserver::request::ptr req, const lynxserver::response::ptr resp){
 
         std::cout << "/: data received: " << req->body() << std::endl;
 
         resp->send(200, "Hi there. Greetings...\n");
     });
 
-    srv.handle("/path1", [](const request::ptr req, const response::ptr resp){
+    srv.handle("/path1", [](const lynxserver::request::ptr req, const lynxserver::response::ptr resp){
 
         std::cout << "/path1: data received: " << req->body() << std::endl;
 

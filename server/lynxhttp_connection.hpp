@@ -13,6 +13,9 @@
 
 namespace net = boost::asio;
 
+namespace lynxhttp {
+namespace server {
+
 class connection : public boost::enable_shared_from_this<connection>
 {
 public:
@@ -48,5 +51,8 @@ private:
     path_tree::ptr path_tree_;
     boost::shared_ptr<request> req_;
 };
+
+} // namespace server
+} // namespace lynxhttp
 
 #endif // __LYNXHTTP_CONNECTION__
