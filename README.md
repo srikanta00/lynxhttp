@@ -6,6 +6,8 @@ Example of a bare minimum server.
 ```
 #include <lynxhttp_server.hpp>
 
+namespace lynxserver = lynxhttp::server;
+
 int main(int argc, char** argv) {
 
     if(argc != 3)
@@ -17,9 +19,9 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    server srv(std::string(argv[1]), static_cast<unsigned short>(std::atoi(argv[2])));
+    lynxserver::server srv(std::string(argv[1]), static_cast<unsigned short>(std::atoi(argv[2])));
 
-    srv.handle("/", [](const request::ptr req, const response::ptr resp){
+    srv.handle("/", [](const lynxserver::request::ptr req, const lynxserver::response::ptr resp){
         std::cout << "data received: " << req->body() << std::endl;
 
         resp->send(200, "Hi there. Greetings...\n");
