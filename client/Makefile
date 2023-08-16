@@ -1,17 +1,14 @@
-NAME = lynxhttp
+NAME = lynxhttpclient
 
 INCLUDES = -I.
 
 LIBS = -L/usr/local/lib/ -lboost_system -lssl -lcrypto
 
-VPATH := server
+VPATH := client
 
 FLAGS = -fPIC -g
 
-SOURCES = lynxhttp_message.cpp \
-		  lynxhttp_connection.cpp \
-		  lynxhttp_server.cpp \
-		  lynxhttp_path_tree.cpp
+SOURCES = lynxhttp_client.cpp
           
 BIN_DIR = ./Bin
 
