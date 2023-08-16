@@ -12,7 +12,7 @@ LIBS = -L/usr/local/lib/ -lboost_system -lpthread -lboost_thread -lssl -lcrypto
 FLAGS = -g
 
 SHARED_OBJECTS := lynxhttp
-SHARED_OBJECTS_HOME = ..
+SHARED_OBJECTS_HOME = ../server
 SHARED_OBJECTS_DIR = $(SHARED_OBJECTS_HOME)/Bin
 
 all : $(TARGET)

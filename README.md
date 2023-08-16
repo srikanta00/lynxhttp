@@ -34,7 +34,11 @@ int main(int argc, char** argv) {
 ```
 
 # Make the library
-Run `make` command from the home directory. A shared object (liblynxhttp.so) will be created in the `Bin` directory. It can be linked with your application.
+Run `make` command from the `server` directory. A shared object (liblynxhttp.so) will be created in the `Bin` directory. It can be linked with your application.
+```
+cd server
+make
+```
 
 # Example
 An example server program is availble in the `examples` directory. To make and run that program:
