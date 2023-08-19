@@ -1,4 +1,5 @@
 server/Bin/
 client/Bin/
+test/Bin/
 examples/httpserver
 examples/httpserver.o
