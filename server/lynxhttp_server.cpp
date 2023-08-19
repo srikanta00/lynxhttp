@@ -16,11 +16,13 @@ public:
     Impl(std::string address, unsigned short port, bool ssl, int n_threads) :
     address_(address), port_(port), ssl_enabled_(ssl),
     ssl_context_(net::ssl::context::sslv23), n_threads_(n_threads) {
+        stopped_ = false;
         path_tree_ = std::make_shared<path_tree>();
     }
 
     void run(net::ip::tcp::endpoint& endpoint);
     void serve();
+    void stop();
 
     void add_path(const std::string& path, callback cb);
     void set_certificate_chain_file(std::string cert_file) {
@@ -56,6 +58,8 @@ private:
 
     int n_threads_;
     boost::thread_group thread_group_;
+
+    bool stopped_;
 };
 
 server::server(std::string address, unsigned short port, bool ssl, int n_threads) {
@@ -68,6 +72,10 @@ server::~server() {
 
 void server::serve() {
     impl_->serve();
+}
+
+void server::stop() {
+    impl_->stop();
 }
 
 void server::handle(const std::string& path, callback cb) {
@@ -120,7 +128,7 @@ void server::Impl::run(net::ip::tcp::endpoint& ep) {
                                 conn->run();
                             }
 
-                            this->run(ep);
+                            if (!stopped_) this->run(ep);
                         });
 }
 
@@ -153,6 +161,15 @@ void server::Impl::serve() {
     }
 
     ios_.run();
+}
+
+void server::Impl::stop() {
+    net::post(acceptor_->get_executor(), [this](){
+        stopped_ = true;
+        acceptor_->cancel();
+    });
+
+    thread_group_.join_all();
 }
 
 void server::Impl::add_path(const std::string& path, callback cb) {

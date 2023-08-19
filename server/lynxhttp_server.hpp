@@ -17,6 +17,7 @@ public:
     virtual ~server();
 
     void serve();
+    void stop();
 
     void handle(const std::string& path, callback cb);
 

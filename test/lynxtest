@@ -1,5 +1,6 @@
 #!/bin/sh
 
+sudo pwd
 make clean
 make
-Bin/lynxtest
+sudo Bin/lynxtest --log_level=message
