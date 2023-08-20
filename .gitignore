@@ -1,5 +1,5 @@
 server/Bin/
 client/Bin/
-test/Bin/
+unittest/Bin/
 examples/httpserver
 examples/httpserver.o
