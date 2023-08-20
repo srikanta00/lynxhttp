@@ -67,7 +67,7 @@ server::server(std::string address, unsigned short port, bool ssl, int n_threads
 }
 
 server::~server() {
-    delete impl_;
+    if (impl_) delete impl_;
 }
 
 void server::serve() {
@@ -93,6 +93,8 @@ void server::set_private_key_file(std::string key_file) {
 void server::set_private_key_password(std::string passwd) {
     impl_->set_private_key_password(passwd);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////
 
 void server::Impl::run(net::ip::tcp::endpoint& ep) {
     /*
