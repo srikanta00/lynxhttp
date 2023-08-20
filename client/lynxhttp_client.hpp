@@ -6,10 +6,16 @@
 namespace lynxhttp {
 namespace client {
 
+typedef void(*connection_cb)(const boost::system::error_code& ec);
+
 class client {
 public:
     client(std::string host = "localhost", unsigned short port = 80, int n_threads = 2, bool ssl_enabled = false);
     virtual ~client();
+
+    void run();
+    void on_connect(connection_cb cb);
+    void stop();
 
 private:
     class Impl;
