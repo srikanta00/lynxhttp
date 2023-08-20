@@ -8,7 +8,8 @@ VPATH := client
 
 FLAGS = -fPIC -g
 
-SOURCES = lynxhttp_client.cpp
+SOURCES = lynxhttp_client.cpp \
+          lynxhttp_client_message.cpp
           
 BIN_DIR = ./Bin
 

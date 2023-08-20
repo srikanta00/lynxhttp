@@ -20,7 +20,6 @@ public:
 private:
     class Impl;
     Impl* impl_;
-    int a;
 };
 
 } // namespace client
