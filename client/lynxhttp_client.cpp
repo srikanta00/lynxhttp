@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include <boost/asio.hpp>
+#include <boost/array.hpp>
 #include <boost/thread.hpp>
 
 #include "lynxhttp_client.hpp"
@@ -27,6 +28,8 @@ public:
 
     void on_connect(connection_cb cb);
 
+    request::ptr send(const std::string& method, const std::string& url, const std::string& data);
+
 private:
     net::io_service ios_;
     int n_threads_;
@@ -43,10 +46,13 @@ private:
     net::ip::tcp::resolver resolver_;
     connection_cb connection_cb_;
 
+    boost::array<uint8_t, 8000> data_;
+
     void start_connect(net::ip::tcp::resolver::iterator ep_iter);
     void check_deadline();
     void handle_connect(const boost::system::error_code& ec,
       net::ip::tcp::resolver::iterator endpoint_iter);
+    void start_read(request::ptr req, response::ptr resp);
 };
 
 client::client(std::string host, unsigned short port, int n_threads, bool ssl_enabled) {
@@ -69,6 +75,9 @@ void client::stop() {
     impl_->stop();
 }
 
+request::ptr client::send(const std::string& method, const std::string& url, const std::string& data) {
+    return impl_->send(method, url, data);
+}
 //////////////////////////////////////////////////////////////////////////////////////
 
 void client::Impl::run() {
@@ -139,6 +148,43 @@ void client::Impl::check_deadline() {
 
 void client::Impl::on_connect(connection_cb cb) {
     connection_cb_ = cb;
+}
+
+request::ptr client::Impl::send(const std::string& method, const std::string& url, const std::string& data) {
+    std::string path = "/";
+    int i = url.find("/");
+
+    if (i != url.npos) {
+        path = url.substr(i);
+    }
+
+    auto req = boost::make_shared<request>(method, path, data);
+
+    socket_.async_write_some(boost::asio::buffer(req->serialize()),
+            [this, req](const boost::system::error_code& err,
+                            std::size_t bytes_transferred) {
+                // std::cout << "Message sent" << std::endl;
+                auto resp = boost::make_shared<response>();
+                start_read(req, resp);
+            }
+        );
+    return req;
+}
+
+void client::Impl::start_read(request::ptr req, response::ptr resp) {
+    socket_.async_read_some(boost::asio::buffer(data_), [this, req, resp](const boost::system::error_code& ec,
+                            std::size_t bytes_transferred){
+        resp->append_data(std::string(data_.begin(), data_.begin() + bytes_transferred));
+        
+        if (resp->parse() == response::parsing_state_t::COMPLETE) {
+            // std::cout << "calling response cb" << std::endl;
+            req->get_response_cb()(resp);
+        } else {
+            // std::cout << "incomplete response parsing" << std::endl;
+            start_read(req, resp);
+        }
+
+    });
 }
 
 } // namespace client

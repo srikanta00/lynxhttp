@@ -76,6 +76,16 @@ BOOST_AUTO_TEST_CASE(server_client_basic)
     BOOST_TEST_MESSAGE("Waiting for 5 seconds...");
     std::this_thread::sleep_for(std::chrono::seconds(5));
 
+    auto req = clnt.send("GET", "x.com/", "It is a request.");
+
+    req->on_response([](lynxclient::response::ptr resp){
+        BOOST_TEST_MESSAGE("response received: " << resp->body());
+        BOOST_CHECK_EQUAL(resp->body(), "It is a response.");
+    });
+
+    BOOST_TEST_MESSAGE("Waiting for 5 seconds...");
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+
     BOOST_TEST_MESSAGE("Stopping server...");
     srv.stop();
     thread_server.join();

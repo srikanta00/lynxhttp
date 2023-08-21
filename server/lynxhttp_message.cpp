@@ -93,7 +93,7 @@ request::parsing_state_t request::parse() {
 
         s = request_line.find("/", i);
         auto version = request_line.substr(s+1);
-        header_["version"] = method;
+        header_["version"] = version;
 
         parsing_state_ = INCOMPLETE;
     }

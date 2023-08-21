@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "lynxhttp_client_message.hpp"
+
 namespace lynxhttp {
 namespace client {
 
@@ -16,6 +18,8 @@ public:
     void run();
     void on_connect(connection_cb cb);
     void stop();
+
+    request::ptr send(const std::string& method = "GET", const std::string& url = "/", const std::string& data = "");
 
 private:
     class Impl;
