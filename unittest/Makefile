@@ -4,7 +4,8 @@ INCLUDES = -I. \
 	   -I../server \
 	   -I../client
 
-SOURCES = utils.cpp \
+SOURCES = main.cpp \
+          utils.cpp \
           test_server.cpp
 
 BIN_DIR = Bin
