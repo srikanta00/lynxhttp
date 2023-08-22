@@ -8,7 +8,8 @@
 namespace lynxhttp {
 namespace client {
 
-typedef void(*connection_cb)(const boost::system::error_code& ec);
+// typedef void(*connection_cb)(const boost::system::error_code& ec);
+typedef std::function<void(const boost::system::error_code& ec)> connection_cb;
 
 class client {
 public:

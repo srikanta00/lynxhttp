@@ -39,7 +39,8 @@ private:
     int parsed_len_;
 };
 
-typedef void(*response_cb)(const response::ptr resp);
+// typedef void(*response_cb)(const response::ptr resp);
+typedef std::function<void(const response::ptr resp)> response_cb;
 
 class request : public boost::enable_shared_from_this<request>
 {
