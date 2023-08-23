@@ -103,13 +103,12 @@ void client::Impl::run() {
 }
 
 void client::Impl::shutdown() {
-    std::cout << "client stop called." << std::endl;
     stopped_ = true;
+    socket_.cancel();
     socket_.close();
     deadline_.cancel();
 
     thread_group_.join_all();
-    std::cout << "client stopped." << std::endl;
 }
 
 void client::Impl::start_connect(net::ip::tcp::resolver::iterator ep_iter) {
@@ -168,6 +167,7 @@ request::ptr client::Impl::send(const std::string& method, const std::string& ur
     if (i != url.npos) {
         path = url.substr(i);
     }
+
     socket_.cancel();
     auto req = boost::make_shared<request>(method, path, data);
 

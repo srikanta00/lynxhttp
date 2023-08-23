@@ -3,3 +3,5 @@ client/Bin/
 unittest/Bin/
 examples/httpserver
 examples/httpserver.o
+examples/httpclient
+examples/httpclient.o
