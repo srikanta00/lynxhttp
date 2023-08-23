@@ -20,7 +20,7 @@ BOOST_AUTO_TEST_CASE(server_curl_basic)
     lynxserver::server srv;
     
     srv.handle("/", [](const lynxserver::request::ptr req, const lynxserver::response::ptr resp){
-        BOOST_TEST_MESSAGE("Data received: " << req->body());
+        BOOST_TEST_MESSAGE("\nData received: " << req->body());
         BOOST_CHECK_EQUAL(req->body(), "It is a request.");
         resp->send(200, "It is a response.");
     });
@@ -33,6 +33,38 @@ BOOST_AUTO_TEST_CASE(server_curl_basic)
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
     auto result = exec("curl -X POST \"127.0.0.1:80?k1=v1&k2=v2\" -d 'It is a request.'");
+    BOOST_TEST_MESSAGE("Response received: " << result);
+    BOOST_CHECK_EQUAL(result, "It is a response.");
+
+    BOOST_TEST_MESSAGE("Waiting for a second...");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    srv.stop();
+    thread1.join();
+    BOOST_TEST_MESSAGE("Test completed.");
+}
+
+BOOST_AUTO_TEST_CASE(server_curl_ssl)
+{
+    BOOST_TEST_MESSAGE("Creating server with ssl enabled: ");
+    lynxserver::server srv("0.0.0.0", 443, true);
+    srv.set_certificate_chain_file("../examples/certificate.pem");
+    srv.set_private_key_file("../examples/key.pem");
+    
+    srv.handle("/", [](const lynxserver::request::ptr req, const lynxserver::response::ptr resp){
+        BOOST_TEST_MESSAGE("\nData received: " << req->body());
+        BOOST_CHECK_EQUAL(req->body(), "It is a request.");
+        resp->send(200, "It is a response.");
+    });
+
+    std::thread thread1([&srv](){
+        srv.serve();
+    });
+
+    BOOST_TEST_MESSAGE("Waiting for a second...");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    auto result = exec("curl -k -X POST \"https://127.0.0.1:443?k1=v1&k2=v2\" -d 'It is a request.'");
     BOOST_TEST_MESSAGE("Response received: " << result);
     BOOST_CHECK_EQUAL(result, "It is a response.");
 
