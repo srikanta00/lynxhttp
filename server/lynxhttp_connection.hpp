@@ -39,9 +39,10 @@ public:
 
     typedef boost::shared_ptr<connection> Ptr;
 
-private:
     void handle_read();
 
+private:
+    
     boost::shared_ptr<net::ip::tcp::socket> socket_;
     boost::shared_ptr<net::ssl::stream<net::ip::tcp::socket> > ssl_socket_;
     bool ssl_enabled_;

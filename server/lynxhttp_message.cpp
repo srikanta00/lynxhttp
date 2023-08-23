@@ -174,6 +174,10 @@ void response::set_connection(const connection::Ptr& conn) {
     conn_ = conn;
 }
 
+boost::shared_ptr<connection> response::get_connection() {
+    return conn_;
+}
+
 std::string response::serialize() {
     std::string response;
 
@@ -215,6 +219,7 @@ void response::send(int status_code, const std::string& resp) {
             [sp = shared_from_this()](const boost::system::error_code& err,
                             std::size_t bytes_transferred) {
                 // std::cout << "Message sent" << std::endl;
+                // sp->get_connection()->handle_read();
             }
         );
     }

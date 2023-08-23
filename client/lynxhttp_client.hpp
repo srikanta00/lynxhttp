@@ -10,6 +10,7 @@ namespace client {
 
 // typedef void(*connection_cb)(const boost::system::error_code& ec);
 typedef std::function<void(const boost::system::error_code& ec)> connection_cb;
+typedef std::function<void(const boost::system::error_code& ec)> close_cb;
 
 class client {
 public:
@@ -18,7 +19,8 @@ public:
 
     void run();
     void on_connect(connection_cb cb);
-    void stop();
+    void on_close(close_cb cb);
+    void shutdown();
 
     request::ptr send(const std::string& method = "GET", const std::string& url = "/", const std::string& data = "");
 

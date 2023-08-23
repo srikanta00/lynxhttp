@@ -106,6 +106,10 @@ BOOST_AUTO_TEST_CASE(server_client_basic)
         conn_promise.set_value(true);
     });
 
+    clnt.on_close([](const boost::system::error_code ec){
+        BOOST_TEST_MESSAGE("Connection closed: " << ec.message());
+    });
+
     std::thread thread_client([&clnt](){
         clnt.run();
     });
@@ -143,7 +147,7 @@ BOOST_AUTO_TEST_CASE(server_client_basic)
     thread_server.join();
 
     BOOST_TEST_MESSAGE("Stopping client...");
-    clnt.stop();
+    clnt.shutdown();
     thread_client.join();
 
     BOOST_TEST_MESSAGE("Test completed.");

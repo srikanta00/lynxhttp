@@ -19,6 +19,12 @@ connection::connection(net::ip::tcp::socket socket, net::ssl::context& ssl_conte
 }
 
 connection::~connection() {
+    if (ssl_enabled_) {
+        ssl_socket_->shutdown();
+    } else {
+        socket_->close();
+    }
+
     // std::cout << "connection::destructor called" << std::endl;
 }
 

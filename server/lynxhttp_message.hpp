@@ -58,6 +58,8 @@ public:
     void set_data(const std::string& data);
 
     void set_connection(const boost::shared_ptr<connection>& conn);
+    
+    boost::shared_ptr<connection> get_connection();
 
     void send(const std::string& resp);
     void send(int status_code, const std::string& resp);
