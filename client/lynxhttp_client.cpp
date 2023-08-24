@@ -162,11 +162,20 @@ void client::Impl::on_close(close_cb cb) {
 
 request::ptr client::Impl::send(const std::string& method, const std::string& url, const std::string& data) {
     std::string path = "/";
-    int i = url.find("/");
+    int i = url.find("://");
 
+    if (i != url.npos) {
+        i += 3;
+    } else {
+        i = 0;
+    }
+
+    i = url.find("/", i);
     if (i != url.npos) {
         path = url.substr(i);
     }
+
+    std::cout << "path: " << path << std::endl;
 
     socket_.cancel();
     auto req = boost::make_shared<request>(method, path, data);

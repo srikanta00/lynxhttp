@@ -124,7 +124,7 @@ BOOST_AUTO_TEST_CASE(server_client_basic)
         BOOST_TEST_MESSAGE("Connection not established.");
     }
 
-    auto req = clnt.send("GET", "x.com/", "It is a request.");
+    auto req = clnt.send("GET", "http://x.com/path1", "It is a request.");
 
     auto response_promise = std::promise<bool>();
 
