@@ -29,14 +29,9 @@ int main(int argc, char** argv) {
     srv.handle("/", [](const lynxserver::request::ptr req, const lynxserver::response::ptr resp){
 
         std::cout << "/: data received: " << req->body() << std::endl;
-
-        resp->send(200, "Hi there. Greetings...\n");
-    });
-
-    srv.handle("/path1", [](const lynxserver::request::ptr req, const lynxserver::response::ptr resp){
-
-        std::cout << "/path1: data received: " << req->body() << std::endl;
-
+        if (req->body() == "Bye") {
+            resp->end(200, "See you again...");
+        }
         resp->send(200, "Hi there. Greetings...\n");
     });
     

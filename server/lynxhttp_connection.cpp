@@ -9,7 +9,7 @@ namespace server {
 connection::connection(net::ip::tcp::socket socket) {
     ssl_enabled_ = false;
     socket_ = boost::make_shared<net::ip::tcp::socket>(std::move(socket));
-    req_ = boost::shared_ptr<request>(new request());
+    // req_ = boost::shared_ptr<request>(new request());
 }
 
 connection::connection(net::ip::tcp::socket socket, net::ssl::context& ssl_context) {
@@ -57,8 +57,16 @@ void connection::run() {
         });
 
     } else {
-        handle_read();
+        start_read();
     }
+}
+
+void connection::start_read() {
+    if (req_) req_.reset();
+    
+    req_ = boost::make_shared<request>();
+
+    handle_read();
 }
 
 void connection::handle_read() {

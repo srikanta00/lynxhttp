@@ -58,23 +58,28 @@ public:
     void set_data(const std::string& data);
 
     void set_connection(const boost::shared_ptr<connection>& conn);
-    
     boost::shared_ptr<connection> get_connection();
 
     void send(const std::string& resp);
     void send(int status_code, const std::string& resp);
+    void end(int status_code, const std::string& resp);
+
+    bool conn_continue();
 
     typedef boost::shared_ptr<response> ptr;
 
     std::string serialize();
 
 private:
+    void start_send(int status_code, const std::string& resp);
+
     int status_code_;
     std::map<std::string, std::string> header_;
     std::string body_;
 
     std::string data_;
     boost::shared_ptr<connection> conn_;
+    bool conn_continue_;
 };
 
 } // namespace server

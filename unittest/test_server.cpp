@@ -83,6 +83,10 @@ BOOST_AUTO_TEST_CASE(server_client_basic)
     
     srv.handle("/", [](const lynxserver::request::ptr req, const lynxserver::response::ptr resp){
         BOOST_TEST_MESSAGE("Data received: " << req->body());
+        if (req->body() == "Bye") {
+            resp->end(200, "See you again.");
+            return;
+        }
         BOOST_CHECK_EQUAL(req->body(), "It is a request.");
         resp->send(200, "It is a response.");
     });
@@ -124,10 +128,11 @@ BOOST_AUTO_TEST_CASE(server_client_basic)
         BOOST_TEST_MESSAGE("Connection not established.");
     }
 
+    BOOST_TEST_MESSAGE("Sending first request...");
+    
     auto req = clnt.send("GET", "http://x.com/path1", "It is a request.");
 
     auto response_promise = std::promise<bool>();
-
     req->on_response([&response_promise](lynxclient::response::ptr resp){
         BOOST_TEST_MESSAGE("response received: " << resp->body());
         BOOST_CHECK_EQUAL(resp->body(), "It is a response.");
@@ -139,6 +144,24 @@ BOOST_AUTO_TEST_CASE(server_client_basic)
     status = response_future.wait_for(std::chrono::seconds(5));
     if (status == std::future_status::ready) {
         auto b = response_future.get();
+        BOOST_CHECK_EQUAL(b, true);
+    }
+
+    BOOST_TEST_MESSAGE("Sending second request...");
+    auto req2 = clnt.send("GET", "http://x.com/path2", "Bye");
+
+    auto response2_promise = std::promise<bool>();
+    req2->on_response([&response2_promise](lynxclient::response::ptr resp){
+        BOOST_TEST_MESSAGE("response received: " << resp->body());
+        BOOST_CHECK_EQUAL(resp->body(), "See you again.");
+        response2_promise.set_value(true);
+    });
+
+    BOOST_TEST_MESSAGE("Waiting for the second response to reach the client...");
+    auto response2_future = response2_promise.get_future();
+    status = response2_future.wait_for(std::chrono::seconds(5));
+    if (status == std::future_status::ready) {
+        auto b = response2_future.get();
         BOOST_CHECK_EQUAL(b, true);
     }
 

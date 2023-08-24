@@ -154,7 +154,8 @@ const std::map<std::string, std::string>& request::query_params() const {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-response::response() {
+response::response() :
+conn_continue_(true) {
 
 }
 
@@ -201,6 +202,16 @@ void response::send(const std::string& resp) {
 }
 
 void response::send(int status_code, const std::string& resp) {
+    conn_continue_ = true;
+    start_send(status_code, resp);
+}
+
+void response::end(int status_code, const std::string& resp) {
+    conn_continue_ = false;
+    start_send(status_code, resp);
+}
+
+void response::start_send(int status_code, const std::string& resp) {
     auto header = conn_->req().header();
     status_code_ = status_code;
     header_["version"] = header["version"];
@@ -212,6 +223,7 @@ void response::send(int status_code, const std::string& resp) {
             [sp = shared_from_this()](const boost::system::error_code& err,
                             std::size_t bytes_transferred) {
                 // std::cout << "Message sent" << std::endl;
+                if (sp->conn_continue()) sp->get_connection()->start_read();
             }
         );
     } else {
@@ -219,10 +231,14 @@ void response::send(int status_code, const std::string& resp) {
             [sp = shared_from_this()](const boost::system::error_code& err,
                             std::size_t bytes_transferred) {
                 // std::cout << "Message sent" << std::endl;
-                // sp->get_connection()->handle_read();
+                if (sp->conn_continue()) sp->get_connection()->start_read();
             }
         );
     }
+}
+
+bool response::conn_continue() {
+    return conn_continue_;
 }
 
 } // namespace server

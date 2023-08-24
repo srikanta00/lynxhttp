@@ -1,5 +1,5 @@
 #include "lynxhttp_client_message.hpp"
-
+#include <iostream>
 namespace lynxhttp {
 namespace client {
 
@@ -48,7 +48,8 @@ response_cb request::get_response_cb() {
 //////////////////////////////////////////////////////////////////////////
 
 response::response() {
-
+    parsed_len_ = 0;
+    parsing_state_ = EMPTY;
 }
 
 response::~response() {

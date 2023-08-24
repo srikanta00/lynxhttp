@@ -175,8 +175,6 @@ request::ptr client::Impl::send(const std::string& method, const std::string& ur
         path = url.substr(i);
     }
 
-    std::cout << "path: " << path << std::endl;
-
     socket_.cancel();
     auto req = boost::make_shared<request>(method, path, data);
 
