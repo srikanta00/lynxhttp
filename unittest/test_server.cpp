@@ -22,7 +22,7 @@ BOOST_AUTO_TEST_CASE(server_curl_basic)
     srv.handle("/", [](const lynxserver::request::ptr req, const lynxserver::response::ptr resp){
         BOOST_TEST_MESSAGE("\nData received: " << req->body());
         BOOST_CHECK_EQUAL(req->body(), "It is a request.");
-        resp->send(200, "It is a response.");
+        resp->end(200, "It is a response.");
     });
 
     std::thread thread1([&srv](){
@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(server_curl_ssl)
     srv.handle("/", [](const lynxserver::request::ptr req, const lynxserver::response::ptr resp){
         BOOST_TEST_MESSAGE("\nData received: " << req->body());
         BOOST_CHECK_EQUAL(req->body(), "It is a request.");
-        resp->send(200, "It is a response.");
+        resp->end(200, "It is a response.");
     });
 
     std::thread thread1([&srv](){

@@ -192,6 +192,10 @@ request::ptr client::Impl::send(const std::string& method, const std::string& ur
 void client::Impl::start_read(request::ptr req, response::ptr resp) {
     socket_.async_read_some(boost::asio::buffer(data_), [this, req, resp](const boost::system::error_code& ec,
                             std::size_t bytes_transferred){
+        if (ec) {
+            std::cout << "client read error: " << ec.message() << std::endl;
+            return;
+        }
 
         resp->append_data(std::string(data_.begin(), data_.begin() + bytes_transferred));
         
@@ -209,8 +213,10 @@ void client::Impl::start_read(request::ptr req, response::ptr resp) {
 void client::Impl::check_connection() {
     socket_.async_read_some(boost::asio::buffer(data_), [this](const boost::system::error_code& ec,
                             std::size_t bytes_transferred){
+        
+        if (ec.value() == 125) return;
+
         if (ec) {
-            // std::cerr << "client: " << ec.message() << ":" << ec.value() << std::endl;
             if (close_cb_) close_cb_(ec);
             return;
         }

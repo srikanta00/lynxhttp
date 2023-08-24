@@ -31,7 +31,9 @@ int main(int argc, char** argv) {
         std::cout << "/: data received: " << req->body() << std::endl;
         if (req->body() == "Bye") {
             resp->end(200, "See you again...");
+            return;
         }
+        
         resp->send(200, "Hi there. Greetings...\n");
     });
     
