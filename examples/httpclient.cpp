@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
         std::cerr
         << "Usage: httpclient <address> <port>\n"
         << "Example:\n"
-        << "    httpclient 12.0.0.1 8080\n";
+        << "    httpclient 127.0.0.1 8080\n";
         return EXIT_FAILURE;
     }
 
@@ -47,5 +47,5 @@ int main(int argc, char** argv) {
     
     t1.join();
 
-    return 0;
+    return EXIT_SUCCESS;
 }

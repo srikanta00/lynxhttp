@@ -1,3 +1,5 @@
+.PHONY: clean httpserver httpclient
+
 all : httpserver httpclient
 
 httpserver :
