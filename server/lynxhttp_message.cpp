@@ -220,16 +220,18 @@ void response::start_send(int status_code, const std::string& resp) {
 
     if(conn_->ssl_enabled()) {
         conn_->ssl_socket().async_write_some(boost::asio::buffer(serialize()),
-            [sp = shared_from_this()](const boost::system::error_code& err,
+            [sp = shared_from_this()](const boost::system::error_code& ec,
                             std::size_t bytes_transferred) {
+                if (ec) return;
                 // std::cout << "Message sent:" << bytes_transferred << err.message() << std::endl;
                 if (sp->conn_continue()) sp->get_connection()->start_read();
             }
         );
     } else {
         conn_->socket().async_write_some(boost::asio::buffer(serialize()),
-            [sp = shared_from_this()](const boost::system::error_code& err,
+            [sp = shared_from_this()](const boost::system::error_code& ec,
                             std::size_t bytes_transferred) {
+                if (ec) return;
                 // std::cout << "Message sent: " << bytes_transferred << err.message() << std::endl;
                 if (sp->conn_continue()) sp->get_connection()->start_read();
             }

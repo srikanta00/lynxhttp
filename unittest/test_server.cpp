@@ -176,4 +176,149 @@ BOOST_AUTO_TEST_CASE(server_client_basic)
     BOOST_TEST_MESSAGE("Test completed.");
 }
 
+BOOST_AUTO_TEST_CASE(server_client_shutdown1)
+{
+    BOOST_TEST_MESSAGE("Creating server with default parameters: ");
+    lynxserver::server srv;
+    
+    srv.handle("/", [](const lynxserver::request::ptr req, const lynxserver::response::ptr resp){
+        BOOST_TEST_MESSAGE("Data received: " << req->body());
+        if (req->body() == "Bye") {
+            resp->end(200, "See you again.");
+            return;
+        }
+        BOOST_CHECK_EQUAL(req->body(), "It is a request.");
+        resp->send(200, "It is a response.");
+    });
+
+    std::thread thread_server([&srv](){
+        srv.serve();
+    });
+
+    BOOST_TEST_MESSAGE("Creating client with default parameters: ");
+    lynxclient::client clnt;
+
+    auto conn_promise = std::promise<bool>();
+
+    clnt.on_connect([&conn_promise](const boost::system::error_code& ec){
+        if (ec) {
+            conn_promise.set_value(false);
+            return;
+        }
+
+        BOOST_TEST_MESSAGE("Connection established: " << ec.message());
+        conn_promise.set_value(true);
+    });
+
+    clnt.on_close([](const boost::system::error_code ec){
+        BOOST_TEST_MESSAGE("Connection closed: " << ec.message());
+    });
+
+    std::thread thread_client([&clnt](){
+        clnt.run();
+    });
+
+    BOOST_TEST_MESSAGE("Waiting for connection to be established...");
+    auto conn_future = conn_promise.get_future();
+    auto status = conn_future.wait_for(std::chrono::seconds(5));
+    if (status == std::future_status::ready) {
+        auto b = conn_future.get();
+        BOOST_CHECK_EQUAL(b, true);
+    } else {
+        BOOST_TEST_MESSAGE("Connection not established.");
+    }
+
+    BOOST_TEST_MESSAGE("Stopping server...");
+    srv.stop();
+    thread_server.join();
+
+    BOOST_TEST_MESSAGE("Stopping client...");
+    clnt.shutdown();
+    thread_client.join();
+
+    BOOST_TEST_MESSAGE("Test completed.");
+}
+
+BOOST_AUTO_TEST_CASE(server_client_shutdown2)
+{
+    BOOST_TEST_MESSAGE("Creating server with default parameters: ");
+    lynxserver::server srv;
+    
+    srv.handle("/", [](const lynxserver::request::ptr req, const lynxserver::response::ptr resp){
+        BOOST_TEST_MESSAGE("Data received: " << req->body());
+        if (req->body() == "Bye") {
+            resp->end(200, "See you again.");
+            return;
+        }
+        BOOST_CHECK_EQUAL(req->body(), "It is a request.");
+        resp->send(200, "It is a response.");
+    });
+
+    std::thread thread_server([&srv](){
+        srv.serve();
+    });
+
+    BOOST_TEST_MESSAGE("Creating client with default parameters: ");
+    lynxclient::client clnt;
+
+    auto conn_promise = std::promise<bool>();
+
+    clnt.on_connect([&conn_promise](const boost::system::error_code& ec){
+        if (ec) {
+            conn_promise.set_value(false);
+            return;
+        }
+
+        BOOST_TEST_MESSAGE("Connection established: " << ec.message());
+        conn_promise.set_value(true);
+    });
+
+    clnt.on_close([](const boost::system::error_code ec){
+        BOOST_TEST_MESSAGE("Connection closed: " << ec.message());
+    });
+
+    std::thread thread_client([&clnt](){
+        clnt.run();
+    });
+
+    BOOST_TEST_MESSAGE("Waiting for connection to be established...");
+    auto conn_future = conn_promise.get_future();
+    auto status = conn_future.wait_for(std::chrono::seconds(5));
+    if (status == std::future_status::ready) {
+        auto b = conn_future.get();
+        BOOST_CHECK_EQUAL(b, true);
+    } else {
+        BOOST_TEST_MESSAGE("Connection not established.");
+    }
+
+    BOOST_TEST_MESSAGE("Sending first request...");
+    
+    auto req = clnt.send("GET", "http://x.com/path1", "It is a request.");
+
+    auto response_promise = std::promise<bool>();
+    req->on_response([&response_promise](lynxclient::response::ptr resp){
+        BOOST_TEST_MESSAGE("response received: " << resp->body());
+        BOOST_CHECK_EQUAL(resp->body(), "It is a response.");
+        response_promise.set_value(true);
+    });
+
+    BOOST_TEST_MESSAGE("Waiting for a response to reach the client...");
+    auto response_future = response_promise.get_future();
+    status = response_future.wait_for(std::chrono::seconds(5));
+    if (status == std::future_status::ready) {
+        auto b = response_future.get();
+        BOOST_CHECK_EQUAL(b, true);
+    }
+
+    BOOST_TEST_MESSAGE("Stopping server...");
+    srv.stop();
+    thread_server.join();
+
+    BOOST_TEST_MESSAGE("Stopping client...");
+    clnt.shutdown();
+    thread_client.join();
+
+    BOOST_TEST_MESSAGE("Test completed.");
+}
+
 BOOST_AUTO_TEST_SUITE_END()

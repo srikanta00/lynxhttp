@@ -18,6 +18,7 @@ public:
     ssl_context_(net::ssl::context::sslv23), n_threads_(n_threads) {
         stopped_ = false;
         path_tree_ = std::make_shared<path_tree>();
+        socket_pool_ = std::make_shared<socket_pool>();
     }
 
     void run(net::ip::tcp::endpoint& endpoint);
@@ -54,7 +55,9 @@ private:
 
     std::string address_;
     unsigned short port_;
+
     path_tree::ptr path_tree_;
+    socket_pool::ptr socket_pool_;
 
     int n_threads_;
     boost::thread_group thread_group_;
@@ -122,11 +125,16 @@ void server::Impl::run(net::ip::tcp::endpoint& ep) {
                                 
                                 boost::shared_ptr<connection> conn;
                                 if (ssl_enabled_) {
-                                    conn = boost::shared_ptr<connection>(new connection(std::move(socket), ssl_context_));
+                                    auto s = boost::make_shared<net::ssl::stream<net::ip::tcp::socket> >(std::move(socket), ssl_context_);
+                                    socket_pool_->add(s);
+                                    conn = boost::shared_ptr<connection>(new connection(s, ssl_context_));
                                 } else {
-                                    conn = boost::shared_ptr<connection>(new connection(std::move(socket)));
+                                    auto s = boost::make_shared<net::ip::tcp::socket>(std::move(socket));
+                                    socket_pool_->add(s);
+                                    conn = boost::shared_ptr<connection>(new connection(s));
                                 }
                                 conn->set_path_tree(path_tree_);
+                                conn->set_socket_pool(socket_pool_);
                                 conn->run();
                             }
 
@@ -171,6 +179,8 @@ void server::Impl::stop() {
         acceptor_->cancel();
     });
 
+    socket_pool_->close();
+    
     thread_group_.join_all();
 }
 
