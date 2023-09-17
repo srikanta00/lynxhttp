@@ -211,8 +211,12 @@ void response::end(int status_code, const std::string& resp) {
     start_send(status_code, resp);
 }
 
+void response::set_req(request::ptr req) {
+    req_ = req;
+}
+
 void response::start_send(int status_code, const std::string& resp) {
-    auto header = conn_->req().header();
+    auto header = req_->header();
     status_code_ = status_code;
     header_["version"] = header["version"];
     header_["Content-Length"] = std::to_string(resp.length());

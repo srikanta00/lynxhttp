@@ -64,45 +64,43 @@ void connection::run() {
 }
 
 void connection::start_read() {
-    if (req_) req_.reset();
-    
-    req_ = boost::make_shared<request>();
+    auto req = boost::make_shared<request>();
 
-    handle_read();
+    handle_read(req);
 }
 
-void connection::handle_read() {
+void connection::handle_read(request::ptr req) {
     if (ssl_enabled_) {
         ssl_socket_->async_read_some(boost::asio::buffer(data_), 
-            [sp = shared_from_this()](const boost::system::error_code& ec,
+            [sp = shared_from_this(), req](const boost::system::error_code& ec,
             std::size_t bytes_transferred){
                 if (ec) return;
                 // std::cout << "async_read_some callback" << bytes_transferred << ":" << err << std::endl;
                 /*TODO: avoid memory copy.*/
-                sp->req().append_data(std::string(sp->data_.begin(), sp->data_.begin() + bytes_transferred));
+                req->append_data(std::string(sp->data_.begin(), sp->data_.begin() + bytes_transferred));
                 
-                if (sp->req().parse() == request::parsing_state_t::COMPLETE) {
+                if (req->parse() == request::parsing_state_t::COMPLETE) {
                     // std::cout << "calling handle request" << std::endl;
-                    sp->handle_request();
+                    sp->handle_request(req);
                 } else {
-                    sp->handle_read();
+                    sp->handle_read(req);
                 }
             }
         );
     } else {
         socket_->async_read_some(boost::asio::buffer(data_), 
-            [sp = shared_from_this()](const boost::system::error_code& ec,
+            [sp = shared_from_this(), req](const boost::system::error_code& ec,
             std::size_t bytes_transferred){
                 if (ec) return;
                 // std::cout << "async_read_some callback" << bytes_transferred << ":" << err << std::endl;
                 /*TODO: avoid memory copy.*/
-                sp->req().append_data(std::string(sp->data_.begin(), sp->data_.begin() + bytes_transferred));
+                req->append_data(std::string(sp->data_.begin(), sp->data_.begin() + bytes_transferred));
                 
-                if (sp->req().parse() == request::parsing_state_t::COMPLETE) {
+                if (req->parse() == request::parsing_state_t::COMPLETE) {
                     // std::cout << "calling handle request" << std::endl;
-                    sp->handle_request();
+                    sp->handle_request(req);
                 } else {
-                    sp->handle_read();
+                    sp->handle_read(req);
                 }
             }
         );
@@ -116,24 +114,27 @@ void connection::set_path_tree(path_tree::ptr path_tree) {
 void connection::set_socket_pool(socket_pool::ptr socket_pool) {
     socket_pool_ = socket_pool;
 }
-
+/*
 request& connection::req() {
     return *req_;
 }
 
+
 void connection::set_req(const std::string& data) {
     req_->set_data(data);
 }
+*/
 
-void connection::handle_request() {
+void connection::handle_request(request::ptr req) {
     auto resp = boost::shared_ptr<response>(new response());
     resp->set_connection(shared_from_this());
+    resp->set_req(req);
     // std::cout << "calling callback" << std::endl;
 
-    auto header = req_->header();
+    auto header = req->header();
     auto path = header["path"];
 
-    path_tree_->path_node(path)->get_callback()(req_, resp);
+    path_tree_->path_node(path)->get_callback()(req, resp);
 }
 
 

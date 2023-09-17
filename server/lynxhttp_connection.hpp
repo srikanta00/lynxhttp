@@ -50,16 +50,16 @@ public:
     void set_path_tree(path_tree::ptr path_tree);
     void set_socket_pool(socket_pool::ptr socket_pool);
 
-    request& req();
+    // request& req();
     void set_req(const std::string& data);
 
-    void handle_request();
+    void handle_request(request::ptr req);
     bool ssl_enabled();
 
     typedef boost::shared_ptr<connection> Ptr;
 
     void start_read();
-    void handle_read();
+    void handle_read(request::ptr req);
 
 private:
     
@@ -72,7 +72,7 @@ private:
     path_tree::ptr path_tree_;
     socket_pool::ptr socket_pool_;
 
-    boost::shared_ptr<request> req_;
+    // boost::shared_ptr<request> req_;
 };
 
 } // namespace server

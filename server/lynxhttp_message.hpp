@@ -63,7 +63,7 @@ public:
     void send(const std::string& resp);
     void send(int status_code, const std::string& resp);
     void end(int status_code, const std::string& resp);
-
+    void set_req(request::ptr req);
     bool conn_continue();
 
     typedef boost::shared_ptr<response> ptr;
@@ -79,6 +79,7 @@ private:
 
     std::string data_;
     boost::shared_ptr<connection> conn_;
+    request::ptr req_;
     bool conn_continue_;
 };
 
