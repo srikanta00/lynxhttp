@@ -45,6 +45,14 @@ response_cb request::get_response_cb() {
     return cb_;
 }
 
+void request::set_resp(response::ptr resp) {
+    resp_ = resp;
+}
+
+response::ptr request::resp() {
+    return resp_;
+}
+
 //////////////////////////////////////////////////////////////////////////
 
 response::response() {
@@ -118,20 +126,28 @@ response::parsing_state_t response::parse() {
 
     int len = std::stoi(header_["Content-Length"]);
 
-    if ((data_.length() - index) < len) {
+    int data_len = data_.length() - index;
+
+    if (data_len < len) {
         parsing_state_ = INCOMPLETE;
         return INCOMPLETE;
     }
 
-    if ((data_.length() - index) == len) {
-        body_ = data_.substr(index);
-        parsed_len_ = data_.length();
+    if (data_len >= len) {
+        body_ = data_.substr(index, len);
+        parsed_len_ = index + len;
         parsing_state_ = COMPLETE;
         return COMPLETE;
     }
 
     parsing_state_ = ERROR;
     return ERROR;
+}
+
+std::string response::extra_data() {
+    if (data_.length() > parsed_len_) return data_.substr(parsed_len_);
+
+    return std::string();
 }
 
 response::parsing_state_t response::parsing_state() {

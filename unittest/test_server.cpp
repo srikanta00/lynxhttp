@@ -323,7 +323,7 @@ BOOST_AUTO_TEST_CASE(server_client_shutdown2)
 
 BOOST_AUTO_TEST_CASE(server_client_hol)
 {
-    return;
+    // return;
     BOOST_TEST_MESSAGE("Creating server with default parameters: ");
     lynxserver::server srv;
     
@@ -341,8 +341,8 @@ BOOST_AUTO_TEST_CASE(server_client_hol)
         srv.serve();
     });
 
-    BOOST_TEST_MESSAGE("Creating client with default parameters: ");
-    lynxclient::client clnt;
+    BOOST_TEST_MESSAGE("Creating client with 1 thread: ");
+    lynxclient::client clnt("localhost", 80, 1);
 
     auto conn_promise = std::promise<bool>();
 

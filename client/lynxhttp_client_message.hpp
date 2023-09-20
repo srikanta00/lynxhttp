@@ -28,6 +28,8 @@ public:
     parsing_state_t parse();
     parsing_state_t parsing_state();
 
+    std::string extra_data();
+
     typedef boost::shared_ptr<response> ptr;
 
 private:
@@ -57,6 +59,9 @@ public:
     void on_response(response_cb cb);
     response_cb get_response_cb();
 
+    void set_resp(response::ptr resp);
+    response::ptr resp();
+
 private:
     std::map<std::string, std::string> header_;
     std::string body_;
@@ -64,6 +69,7 @@ private:
     std::string method_;
     std::string path_;
 
+    response::ptr resp_;
     response_cb cb_;
 };
 

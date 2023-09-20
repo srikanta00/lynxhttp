@@ -63,9 +63,23 @@ void connection::run() {
     }
 }
 
-void connection::start_read() {
+void connection::start_read(std::string data) {
     auto req = boost::make_shared<request>();
 
+    if (data.length() > 0 ) {
+        req->append_data(data);
+                
+        if (req->parse() == request::parsing_state_t::COMPLETE) {
+            // std::cout << "calling handle request" << std::endl;
+            handle_request(req);
+            auto ed = req->extra_data();
+            std::cout << "Extra data: " << ed << std::endl;
+
+            start_read(ed);
+            return;
+        }
+    }
+    
     handle_read(req);
 }
 
@@ -82,6 +96,9 @@ void connection::handle_read(request::ptr req) {
                 if (req->parse() == request::parsing_state_t::COMPLETE) {
                     // std::cout << "calling handle request" << std::endl;
                     sp->handle_request(req);
+                    auto ed = req->extra_data();
+                    std::cout << "Extra data: " << ed << std::endl;
+                    sp->start_read(ed);
                 } else {
                     sp->handle_read(req);
                 }
@@ -91,14 +108,18 @@ void connection::handle_read(request::ptr req) {
         socket_->async_read_some(boost::asio::buffer(data_), 
             [sp = shared_from_this(), req](const boost::system::error_code& ec,
             std::size_t bytes_transferred){
+                std::cout << "async_read_some callback" << bytes_transferred << ":" << ec << std::endl;
+                std::cout << "Data received:" << std::string(sp->data_.begin(), sp->data_.begin() + bytes_transferred) << std::endl;
                 if (ec) return;
-                // std::cout << "async_read_some callback" << bytes_transferred << ":" << err << std::endl;
                 /*TODO: avoid memory copy.*/
                 req->append_data(std::string(sp->data_.begin(), sp->data_.begin() + bytes_transferred));
                 
                 if (req->parse() == request::parsing_state_t::COMPLETE) {
                     // std::cout << "calling handle request" << std::endl;
                     sp->handle_request(req);
+                    auto ed = req->extra_data();
+                    std::cout << "Extra data: " << ed << std::endl;
+                    sp->start_read(ed);
                 } else {
                     sp->handle_read(req);
                 }
@@ -137,6 +158,13 @@ void connection::handle_request(request::ptr req) {
     path_tree_->path_node(path)->get_callback()(req, resp);
 }
 
+void connection::close() {
+    if (ssl_enabled_) {
+        ssl_socket_->shutdown();
+    } else {
+        socket_->close();
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////////////
 
