@@ -37,6 +37,8 @@ public:
     parsing_state_t parse();
     parsing_state_t parsing_state();
 
+    std::string extra_data();
+
 private:
     void parse_query_params(std::string& params);
     

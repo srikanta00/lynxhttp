@@ -58,8 +58,10 @@ public:
 
     typedef boost::shared_ptr<connection> Ptr;
 
-    void start_read();
+    void start_read(std::string data = "");
     void handle_read(request::ptr req);
+
+    void close();
 
 private:
     

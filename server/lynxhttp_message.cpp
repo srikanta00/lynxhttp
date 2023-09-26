@@ -125,20 +125,28 @@ request::parsing_state_t request::parse() {
 
     int len = std::stoi(header_["Content-Length"]);
 
-    if ((data_.length() - index) < len) {
+    int data_len = data_.length() - index;
+
+    if (data_len < len) {
         parsing_state_ = INCOMPLETE;
         return INCOMPLETE;
     }
 
-    if ((data_.length() - index) == len) {
-        body_ = data_.substr(index);
-        parsed_len_ = data_.length();
+    if (data_len >= len) {
+        body_ = data_.substr(index, len);
+        parsed_len_ = index + len;
         parsing_state_ = COMPLETE;
         return COMPLETE;
     }
 
     parsing_state_ = ERROR;
     return ERROR;
+}
+
+std::string request::extra_data() {
+    if (data_.length() > parsed_len_) return data_.substr(parsed_len_);
+
+    return std::string();
 }
 
 const std::map<std::string, std::string>& request::header() const {
@@ -222,22 +230,24 @@ void response::start_send(int status_code, const std::string& resp) {
     header_["Content-Length"] = std::to_string(resp.length());
     body_ = resp;
 
+    // std::cout << std::hash<std::thread::id>{}(std::this_thread::get_id()) << ":start sending: " << resp << std::endl;
+
     if(conn_->ssl_enabled()) {
         conn_->ssl_socket().async_write_some(boost::asio::buffer(serialize()),
             [sp = shared_from_this()](const boost::system::error_code& ec,
                             std::size_t bytes_transferred) {
                 if (ec) return;
                 // std::cout << "Message sent:" << bytes_transferred << err.message() << std::endl;
-                if (sp->conn_continue()) sp->get_connection()->start_read();
+                if (sp->conn_continue() == false) sp->get_connection()->close();
             }
         );
     } else {
         conn_->socket().async_write_some(boost::asio::buffer(serialize()),
             [sp = shared_from_this()](const boost::system::error_code& ec,
                             std::size_t bytes_transferred) {
-                if (ec) return;
-                // std::cout << "Message sent: " << bytes_transferred << err.message() << std::endl;
-                if (sp->conn_continue()) sp->get_connection()->start_read();
+                // if (ec) return;
+                // std::cout << "Message sent: " << bytes_transferred << ec.message() << std::endl;
+                if (sp->conn_continue() == false) sp->get_connection()->close();
             }
         );
     }
