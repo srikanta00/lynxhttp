@@ -73,7 +73,7 @@ void connection::start_read(std::string data) {
             // std::cout << "calling handle request" << std::endl;
             handle_request(req);
             auto ed = req->extra_data();
-            std::cout << "Extra data: " << ed << std::endl;
+            // std::cout << "Extra data: " << ed << std::endl;
 
             start_read(ed);
             return;
@@ -97,7 +97,7 @@ void connection::handle_read(request::ptr req) {
                     // std::cout << "calling handle request" << std::endl;
                     sp->handle_request(req);
                     auto ed = req->extra_data();
-                    std::cout << "Extra data: " << ed << std::endl;
+                    // std::cout << "Extra data: " << ed << std::endl;
                     sp->start_read(ed);
                 } else {
                     sp->handle_read(req);
@@ -108,8 +108,8 @@ void connection::handle_read(request::ptr req) {
         socket_->async_read_some(boost::asio::buffer(data_), 
             [sp = shared_from_this(), req](const boost::system::error_code& ec,
             std::size_t bytes_transferred){
-                std::cout << "async_read_some callback" << bytes_transferred << ":" << ec << std::endl;
-                std::cout << "Data received:" << std::string(sp->data_.begin(), sp->data_.begin() + bytes_transferred) << std::endl;
+                // std::cout << "async_read_some callback:" << bytes_transferred << ":" << ec << std::endl;
+                // std::cout << "Data received:" << std::string(sp->data_.begin(), sp->data_.begin() + bytes_transferred) << std::endl;
                 if (ec) return;
                 /*TODO: avoid memory copy.*/
                 req->append_data(std::string(sp->data_.begin(), sp->data_.begin() + bytes_transferred));
@@ -118,7 +118,7 @@ void connection::handle_read(request::ptr req) {
                     // std::cout << "calling handle request" << std::endl;
                     sp->handle_request(req);
                     auto ed = req->extra_data();
-                    std::cout << "Extra data: " << ed << std::endl;
+                    // std::cout << "Extra data: " << ed << std::endl;
                     sp->start_read(ed);
                 } else {
                     sp->handle_read(req);
@@ -161,8 +161,10 @@ void connection::handle_request(request::ptr req) {
 void connection::close() {
     if (ssl_enabled_) {
         ssl_socket_->shutdown();
+        socket_pool_->remove(ssl_socket_);
     } else {
         socket_->close();
+        socket_pool_->remove(socket_);
     }
 }
 

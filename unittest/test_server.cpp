@@ -341,8 +341,8 @@ BOOST_AUTO_TEST_CASE(server_client_hol)
         srv.serve();
     });
 
-    BOOST_TEST_MESSAGE("Creating client with 1 thread: ");
-    lynxclient::client clnt("localhost", 80, 1);
+    BOOST_TEST_MESSAGE("Creating client with 2 thread: ");
+    lynxclient::client clnt("localhost", 80, 2);
 
     auto conn_promise = std::promise<bool>();
 
@@ -387,6 +387,14 @@ BOOST_AUTO_TEST_CASE(server_client_hol)
         response_promise.set_value(true);
     });
 
+    auto response2_promise = std::promise<bool>();
+    req2->on_response([&response2_promise](lynxclient::response::ptr resp){
+        BOOST_TEST_MESSAGE("response received: " << resp->body());
+        BOOST_CHECK_EQUAL(resp->body(), "See you again.");
+        response2_promise.set_value(true);
+    });
+
+
     BOOST_TEST_MESSAGE("Waiting for a response to reach the client...");
     auto response_future = response_promise.get_future();
     status = response_future.wait_for(std::chrono::seconds(5));
@@ -394,13 +402,6 @@ BOOST_AUTO_TEST_CASE(server_client_hol)
         auto b = response_future.get();
         BOOST_CHECK_EQUAL(b, true);
     }
-
-    auto response2_promise = std::promise<bool>();
-    req2->on_response([&response2_promise](lynxclient::response::ptr resp){
-        BOOST_TEST_MESSAGE("response received: " << resp->body());
-        BOOST_CHECK_EQUAL(resp->body(), "See you again.");
-        response2_promise.set_value(true);
-    });
 
     BOOST_TEST_MESSAGE("Waiting for the second response to reach the client...");
     auto response2_future = response2_promise.get_future();

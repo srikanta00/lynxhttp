@@ -223,7 +223,7 @@ void client::Impl::start_read_ex(std::string data) {
 
     socket_.async_read_some(boost::asio::buffer(data_), [this](const boost::system::error_code& ec,
                             std::size_t bytes_transferred){
-        std::cout << std::hash<std::thread::id>{}(std::this_thread::get_id()) << ":CLIENT ASYNC READ: ec: " << ec << ", bytes: " << bytes_transferred << std::endl;
+        // std::cout << std::hash<std::thread::id>{}(std::this_thread::get_id()) << ":CLIENT ASYNC READ: ec: " << ec << ", bytes: " << bytes_transferred << std::endl;
         
         if (ec.value() == 125) {
             start_read_ex();
@@ -234,7 +234,7 @@ void client::Impl::start_read_ex(std::string data) {
             if (close_cb_) close_cb_(ec);
             return;
         }
-
+        // std::cout << "CLIENT ASYNC READ: " << std::string(data_.begin(), data_.begin() + bytes_transferred) << std::endl;
         start_read_ex(std::string(data_.begin(), data_.begin() + bytes_transferred));
     });
 }
@@ -242,7 +242,7 @@ void client::Impl::start_read_ex(std::string data) {
 void client::Impl::start_read(request::ptr req, response::ptr resp) {
     socket_.async_read_some(boost::asio::buffer(data_), [this, req, resp](const boost::system::error_code& ec,
                             std::size_t bytes_transferred){
-        std::cout << std::hash<std::thread::id>{}(std::this_thread::get_id()) << ":CLIENT ASYNC READ: ec: " << ec << ", bytes: " << bytes_transferred << std::endl;
+        // std::cout << std::hash<std::thread::id>{}(std::this_thread::get_id()) << ":CLIENT ASYNC READ: ec: " << ec << ", bytes: " << bytes_transferred << std::endl;
         if (ec) {
             std::cout << "client read error: " << ec.message() << std::endl;
             return;

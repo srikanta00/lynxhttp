@@ -230,7 +230,7 @@ void response::start_send(int status_code, const std::string& resp) {
     header_["Content-Length"] = std::to_string(resp.length());
     body_ = resp;
 
-    std::cout << std::hash<std::thread::id>{}(std::this_thread::get_id()) << ":start sending: " << resp << std::endl;
+    // std::cout << std::hash<std::thread::id>{}(std::this_thread::get_id()) << ":start sending: " << resp << std::endl;
 
     if(conn_->ssl_enabled()) {
         conn_->ssl_socket().async_write_some(boost::asio::buffer(serialize()),
@@ -246,7 +246,7 @@ void response::start_send(int status_code, const std::string& resp) {
             [sp = shared_from_this()](const boost::system::error_code& ec,
                             std::size_t bytes_transferred) {
                 // if (ec) return;
-                std::cout << "Message sent: " << bytes_transferred << ec.message() << std::endl;
+                // std::cout << "Message sent: " << bytes_transferred << ec.message() << std::endl;
                 if (sp->conn_continue() == false) sp->get_connection()->close();
             }
         );
