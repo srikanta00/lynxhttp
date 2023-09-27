@@ -236,8 +236,8 @@ void response::start_send(int status_code, const std::string& resp) {
         conn_->ssl_socket().async_write_some(boost::asio::buffer(serialize()),
             [sp = shared_from_this()](const boost::system::error_code& ec,
                             std::size_t bytes_transferred) {
+                // std::cout << "Message sent:" << bytes_transferred << " : " << ec.message() << std::endl;
                 if (ec) return;
-                // std::cout << "Message sent:" << bytes_transferred << err.message() << std::endl;
                 if (sp->conn_continue() == false) sp->get_connection()->close();
             }
         );

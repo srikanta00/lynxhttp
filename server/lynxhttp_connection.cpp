@@ -160,7 +160,14 @@ void connection::handle_request(request::ptr req) {
 
 void connection::close() {
     if (ssl_enabled_) {
-        ssl_socket_->shutdown();
+        //ssl_socket_->shutdown();
+        
+        boost::system::error_code ec;
+        ssl_socket_->lowest_layer().cancel(ec);
+        ssl_socket_->async_shutdown([sp = shared_from_this()](...){
+            sp->ssl_socket().lowest_layer().close();
+        });
+
         socket_pool_->remove(ssl_socket_);
     } else {
         socket_->close();
